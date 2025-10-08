@@ -83,3 +83,4 @@ lib/
 ---
 
 Desenvolvido com ❤️ para estudantes que querem se organizar melhor!
+
