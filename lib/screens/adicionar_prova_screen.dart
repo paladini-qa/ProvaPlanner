@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/prova.dart';
+import '../models/disciplina.dart';
 import '../services/prova_service.dart';
+import '../services/disciplina_service.dart';
 import '../theme/app_theme.dart';
 
 class AdicionarProvaScreen extends StatefulWidget {
@@ -14,11 +16,13 @@ class AdicionarProvaScreen extends StatefulWidget {
 class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
-  final _disciplinaController = TextEditingController();
   final _descricaoController = TextEditingController();
   
   DateTime _dataProva = DateTime.now().add(const Duration(days: 7));
   Color _corSelecionada = AppTheme.indigo;
+  Disciplina? _disciplinaSelecionada;
+  List<Disciplina> _disciplinas = [];
+  bool _isLoadingDisciplinas = true;
   
   final List<Color> _coresDisponiveis = [
     AppTheme.indigo,
@@ -32,11 +36,24 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _carregarDisciplinas();
+  }
+
+  @override
   void dispose() {
     _nomeController.dispose();
-    _disciplinaController.dispose();
     _descricaoController.dispose();
     super.dispose();
+  }
+
+  Future<void> _carregarDisciplinas() async {
+    final disciplinas = await DisciplinaService.carregarDisciplinas();
+    setState(() {
+      _disciplinas = disciplinas;
+      _isLoadingDisciplinas = false;
+    });
   }
 
   Future<void> _selecionarData() async {
@@ -55,16 +72,17 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
   }
 
   Future<void> _salvarProva() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _disciplinaSelecionada != null) {
       try {
         final prova = Prova(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           nome: _nomeController.text.trim(),
-          disciplina: _disciplinaController.text.trim(),
+          disciplinaId: _disciplinaSelecionada!.id,
+          disciplinaNome: _disciplinaSelecionada!.nome,
           dataProva: _dataProva,
           descricao: _descricaoController.text.trim(),
           revisoes: Prova.gerarRevisoes(_dataProva),
-          cor: _corSelecionada,
+          cor: _disciplinaSelecionada!.cor,
         );
 
         await ProvaService.adicionarProva(prova);
@@ -130,22 +148,129 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
             
             const SizedBox(height: 16),
             
-            // Disciplina
-            TextFormField(
-              controller: _disciplinaController,
+            // Seleção de Disciplina
+            DropdownButtonFormField<Disciplina>(
+              value: _disciplinaSelecionada,
               decoration: const InputDecoration(
-                labelText: 'Disciplina',
-                hintText: 'Ex: Matemática, Física, etc.',
+                labelText: 'Disciplina *',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.school),
               ),
+              hint: _isLoadingDisciplinas 
+                  ? const Text('Carregando disciplinas...', style: TextStyle(color: Colors.black54))
+                  : const Text('Selecione uma disciplina', style: TextStyle(color: Colors.black54)),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              items: _disciplinas.map((disciplina) {
+                return DropdownMenuItem<Disciplina>(
+                  value: disciplina,
+                  child: Text(
+                    disciplina.nome,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (disciplina) {
+                setState(() {
+                  _disciplinaSelecionada = disciplina;
+                });
+              },
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Disciplina é obrigatória';
+                if (value == null) {
+                  return 'Selecione uma disciplina';
                 }
                 return null;
               },
             ),
+            
+            if (_disciplinas.isEmpty && !_isLoadingDisciplinas) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info, color: Colors.orange, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Nenhuma disciplina cadastrada. Cadastre uma disciplina primeiro.',
+                        style: TextStyle(
+                          color: Colors.orange[800],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
+            // Exibição da disciplina selecionada
+            if (_disciplinaSelecionada != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _disciplinaSelecionada!.cor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _disciplinaSelecionada!.cor.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: _disciplinaSelecionada!.cor.withOpacity(0.2),
+                      child: Icon(
+                        Icons.school,
+                        size: 20,
+                        color: _disciplinaSelecionada!.cor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _disciplinaSelecionada!.nome,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _disciplinaSelecionada!.cor,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Professor: ${_disciplinaSelecionada!.professor}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            'Período: ${_disciplinaSelecionada!.periodo}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             
             const SizedBox(height: 16),
             
@@ -180,54 +305,6 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
             ),
             
             const SizedBox(height: 24),
-            
-            // Seleção de cor
-            Text(
-              'Cor da Prova',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            
-            Wrap(
-              spacing: 12,
-              children: _coresDisponiveis.map((cor) {
-                final isSelected = _corSelecionada == cor;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _corSelecionada = cor;
-                    });
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: cor,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: Colors.white, width: 3)
-                          : null,
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: cor.withOpacity(0.5),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 24,
-                          )
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ),
             
             const SizedBox(height: 32),
             

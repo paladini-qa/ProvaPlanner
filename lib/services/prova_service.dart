@@ -70,7 +70,8 @@ class ProvaService {
       final provaAtualizada = Prova(
         id: prova.id,
         nome: prova.nome,
-        disciplina: prova.disciplina,
+        disciplinaId: prova.disciplinaId,
+        disciplinaNome: prova.disciplinaNome,
         dataProva: prova.dataProva,
         descricao: prova.descricao,
         revisoes: revisoes,

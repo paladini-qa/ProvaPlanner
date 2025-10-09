@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../models/prova.dart';
@@ -8,6 +8,43 @@ import '../widgets/prova_card.dart';
 import '../widgets/revisao_card.dart';
 import '../widgets/app_icon.dart';
 import 'adicionar_prova_screen.dart';
+
+class ProvaDataSource extends CalendarDataSource {
+  ProvaDataSource(List<Prova> provas) {
+    appointments = provas.map((prova) => Appointment(
+      startTime: prova.dataProva,
+      endTime: prova.dataProva.add(const Duration(hours: 1)),
+      subject: prova.nome,
+      color: prova.cor,
+      notes: prova.descricao,
+    )).toList();
+  }
+
+  @override
+  DateTime getStartTime(int index) {
+    return appointments![index].startTime;
+  }
+
+  @override
+  DateTime getEndTime(int index) {
+    return appointments![index].endTime;
+  }
+
+  @override
+  String getSubject(int index) {
+    return appointments![index].subject;
+  }
+
+  @override
+  Color getColor(int index) {
+    return appointments![index].color;
+  }
+
+  @override
+  String getNotes(int index) {
+    return appointments![index].notes;
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,13 +59,17 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Prova> _provas = [];
   List<Revisao> _revisoes = [];
   bool _isLoading = true;
+  CalendarView _calendarView = CalendarView.month;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
     initializeDateFormatting('pt_BR', null);
-    _carregarDados();
+    // Usar addPostFrameCallback para evitar chamar setState durante build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarDados();
+    });
   }
 
   bool isSameDay(DateTime? a, DateTime? b) {
@@ -83,6 +124,44 @@ class _HomeScreenState extends State<HomeScreen> {
     _carregarDados();
   }
 
+  Widget _buildFormatButton(String label, CalendarView view, IconData icon) {
+    final isSelected = _calendarView == view;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _calendarView = view;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : Colors.grey[600],
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,42 +189,78 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // Seletor de formato do calendário
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildFormatButton(
+                              'Mês',
+                              CalendarView.month,
+                              Icons.calendar_view_month,
+                            ),
+                            _buildFormatButton(
+                              'Semana',
+                              CalendarView.week,
+                              Icons.calendar_view_week,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
                 // Calendário
                 Card(
                   margin: const EdgeInsets.all(16),
-                  child: TableCalendar<Prova>(
-                    firstDay: DateTime.utc(2020, 1, 1),
-                    lastDay: DateTime.utc(2030, 12, 31),
-                    focusedDay: _focusedDay,
-                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    onDaySelected: _onDaySelected,
-                    onPageChanged: (focusedDay) {
-                      setState(() => _focusedDay = focusedDay);
-                    },
-                    eventLoader: (day) {
-                      return _provas.where((prova) {
-                        return isSameDay(prova.dataProva, day);
-                      }).toList();
-                    },
-                    calendarStyle: CalendarStyle(
-                      outsideDaysVisible: false,
-                      markersMaxCount: 3,
-                    ),
-                    calendarBuilders: CalendarBuilders(
-                      markerBuilder: (context, day, events) {
-                        if (events.isEmpty) return null;
-                        return Positioned(
-                          bottom: 1,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        );
+                  child: SizedBox(
+                    height: 400,
+                    child: SfCalendar(
+                      view: _calendarView,
+                      initialDisplayDate: _focusedDay,
+                      initialSelectedDate: _selectedDay,
+                      onSelectionChanged: (CalendarSelectionDetails details) {
+                        if (details.date != null) {
+                          // Usar addPostFrameCallback para evitar chamar setState durante build
+                          WidgetsBinding.instance.addPostFrameCallback((_) async {
+                            if (mounted) {
+                              setState(() {
+                                _selectedDay = details.date;
+                                _focusedDay = details.date!;
+                              });
+                              await _carregarDados();
+                            }
+                          });
+                        }
                       },
+                      onViewChanged: (ViewChangedDetails details) {
+                        // Usar addPostFrameCallback para evitar chamar setState durante build
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {
+                              _focusedDay = details.visibleDates.first;
+                            });
+                          }
+                        });
+                      },
+                      dataSource: ProvaDataSource(_provas),
+                      monthViewSettings: const MonthViewSettings(
+                        showAgenda: false,
+                        appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+                      ),
+                      headerStyle: const CalendarHeaderStyle(
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
@@ -281,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Disciplina: ${prova.disciplina}'),
+            Text('Disciplina: ${prova.disciplinaNome}'),
             const SizedBox(height: 8),
             Text('Data: ${DateFormat('dd/MM/yyyy').format(prova.dataProva)}'),
             if (prova.descricao.isNotEmpty) ...[

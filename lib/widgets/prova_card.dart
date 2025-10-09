@@ -40,7 +40,7 @@ class ProvaCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(prova.disciplina),
+            Text(prova.disciplinaNome),
             const SizedBox(height: 4),
             Row(
               children: [

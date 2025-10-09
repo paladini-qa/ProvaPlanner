@@ -10,9 +10,9 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   shared_preferences: ^2.2.2
-  intl: ^0.18.1
+  intl: ^0.20.2
   flutter_svg: ^2.0.9
-  table_calendar: ^3.0.9
+  syncfusion_flutter_calendar: ^31.1.23
 
 dev_dependencies:
   flutter_test:

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class Prova {
   final String id;
   final String nome;
-  final String disciplina;
+  final String disciplinaId;
+  final String disciplinaNome;
   final DateTime dataProva;
   final String descricao;
   final List<Revisao> revisoes;
@@ -12,7 +13,8 @@ class Prova {
   Prova({
     required this.id,
     required this.nome,
-    required this.disciplina,
+    required this.disciplinaId,
+    required this.disciplinaNome,
     required this.dataProva,
     this.descricao = '',
     required this.revisoes,
@@ -84,7 +86,8 @@ class Prova {
     return {
       'id': id,
       'nome': nome,
-      'disciplina': disciplina,
+      'disciplinaId': disciplinaId,
+      'disciplinaNome': disciplinaNome,
       'dataProva': dataProva.toIso8601String(),
       'descricao': descricao,
       'revisoes': revisoes.map((r) => r.toJson()).toList(),
@@ -96,7 +99,8 @@ class Prova {
     return Prova(
       id: json['id'],
       nome: json['nome'],
-      disciplina: json['disciplina'],
+      disciplinaId: json['disciplinaId'] ?? json['disciplina'] ?? '',
+      disciplinaNome: json['disciplinaNome'] ?? json['disciplina'] ?? '',
       dataProva: DateTime.parse(json['dataProva']),
       descricao: json['descricao'] ?? '',
       revisoes: (json['revisoes'] as List)

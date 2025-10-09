@@ -76,6 +76,145 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  Future<void> _aceitarTudo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_onboarding', true);
+    await prefs.setBool('has_accepted_policies', true);
+    await prefs.setBool('notifications_enabled', true);
+    
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  Widget _buildNavigationButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Botão anterior
+        if (_currentPage > 0)
+          TextButton(
+            onPressed: _previousPage,
+            child: Text(
+              'Anterior',
+              style: TextStyle(
+                color: AppTheme.slateLighter,
+                fontSize: 16,
+              ),
+            ),
+          )
+        else
+          const SizedBox(width: 80),
+        
+        // Botão próximo
+        Semantics(
+          button: true,
+          label: 'Ir para próxima página',
+          child: ElevatedButton(
+            onPressed: _nextPage,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.indigo,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Próximo',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinalButtons() {
+    return Column(
+      children: [
+        // Botão "Aceitar Tudo"
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: _aceitarTudo,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.indigo,
+              side: BorderSide(color: AppTheme.indigo),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Aceitar Tudo e Continuar',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Botão "Começar" (navegação normal)
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _nextPage,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.indigo,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Começar',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Texto explicativo
+        Text(
+          'Ou continue para aceitar as políticas',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,54 +282,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Botões de navegação
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Botão anterior
-                  if (_currentPage > 0)
-                    TextButton(
-                      onPressed: _previousPage,
-                      child: Text(
-                        'Anterior',
-                        style: TextStyle(
-                          color: AppTheme.slateLighter,
-                          fontSize: 16,
-                        ),
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 80),
-                  
-                  // Botão próximo/concluir
-                  Semantics(
-                    button: true,
-                    label: _currentPage == _pages.length - 1 
-                        ? 'Começar a usar o aplicativo' 
-                        : 'Ir para próxima página',
-                    child: ElevatedButton(
-                      onPressed: _nextPage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.indigo,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        _currentPage == _pages.length - 1 ? 'Começar' : 'Próximo',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: _currentPage == _pages.length - 1 
+                  ? _buildFinalButtons()
+                  : _buildNavigationButtons(),
             ),
           ],
         ),
