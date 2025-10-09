@@ -6,7 +6,7 @@
 
 **Nome do Produto:** ProvaPlanner  
 **Versão:** 1.0.0  
-**Data:** Dezembro 2024  
+**Data:** Outubro 2025  
 **Tipo:** Aplicativo Mobile Flutter
 
 **Descrição:** O ProvaPlanner é um aplicativo mobile desenvolvido em Flutter para organização acadêmica, permitindo que estudantes gerenciem suas provas e criem cronogramas de estudos personalizados com revisões automáticas.
