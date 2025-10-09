@@ -135,19 +135,14 @@ class AppIcon extends StatelessWidget {
                       bottom: 0,
                       left: size * 0.06,
                       child: Container(
-                        width: 0,
-                        height: 0,
-                        borderLeft: BorderSide(
-                          color: Colors.transparent,
-                          width: size * 0.05,
-                        ),
-                        borderRight: BorderSide(
-                          color: Colors.transparent,
-                          width: size * 0.05,
-                        ),
-                        borderBottom: BorderSide(
+                        width: size * 0.1,
+                        height: size * 0.08,
+                        decoration: BoxDecoration(
                           color: AppTheme.slate,
-                          width: size * 0.08,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(1),
+                            bottomRight: Radius.circular(1),
+                          ),
                         ),
                       ),
                     ),

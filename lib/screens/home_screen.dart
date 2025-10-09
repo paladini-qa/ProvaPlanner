@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../models/prova.dart';
 import '../services/prova_service.dart';
 import '../widgets/prova_card.dart';
@@ -26,7 +27,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
+    initializeDateFormatting('pt_BR', null);
     _carregarDados();
+  }
+
+  bool isSameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return false;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Future<void> _carregarDados() async {
@@ -35,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final provas = await ProvaService.carregarProvas();
     final revisoes = _selectedDay != null 
         ? await ProvaService.obterRevisoesPorData(_selectedDay!)
-        : [];
+        : <Revisao>[];
     
     setState(() {
       _provas = provas;
@@ -120,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return isSameDay(prova.dataProva, day);
                       }).toList();
                     },
-                    calendarStyle: const CalendarStyle(
+                    calendarStyle: CalendarStyle(
                       outsideDaysVisible: false,
                       markersMaxCount: 3,
                     ),
