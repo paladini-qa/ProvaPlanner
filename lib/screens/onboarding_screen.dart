@@ -83,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('notifications_enabled', true);
     
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/profile-setup');
     }
   }
 

@@ -26,7 +26,7 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
     await prefs.setBool('notifications_enabled', _acceptedNotifications);
     
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/profile-setup');
     }
   }
 

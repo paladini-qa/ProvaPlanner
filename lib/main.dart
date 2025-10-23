@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/policies_screen.dart';
+import 'screens/profile_setup_screen.dart';
 import 'screens/main_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +24,7 @@ class ProvaPlannerApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/policies': (context) => const PoliciesScreen(),
+        '/profile-setup': (context) => const ProfileSetupScreen(),
         '/home': (context) => const MainScreen(),
       },
     );

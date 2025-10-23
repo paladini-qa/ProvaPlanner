@@ -57,11 +57,14 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
     final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;
+    final hasCompletedProfileSetup = prefs.getBool('profile_setup_completed') ?? false;
 
     if (!hasSeenOnboarding) {
       Navigator.pushReplacementNamed(context, '/onboarding');
     } else if (!hasAcceptedPolicies) {
       Navigator.pushReplacementNamed(context, '/policies');
+    } else if (!hasCompletedProfileSetup) {
+      Navigator.pushReplacementNamed(context, '/profile-setup');
     } else {
       Navigator.pushReplacementNamed(context, '/home');
     }
