@@ -345,12 +345,12 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
             Icon(
               Icons.flag_outlined,
               size: 80,
@@ -374,7 +374,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -606,31 +605,37 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
                   ],
                 ),
               ),
-              // Resumo diário (apenas para hoje)
-              if (_dataSelecionada.year == DateTime.now().year &&
-                  _dataSelecionada.month == DateTime.now().month &&
-                  _dataSelecionada.day == DateTime.now().day)
-                DailySummaryCard(
-                  resumo: _resumoDiario,
-                  isLoading: _isLoadingResumo,
-                  onRefresh: _gerarResumoDiario,
-                ),
-              if (!_isLoading && _goals.isEmpty) _buildEmptyState(),
-              if (!_isLoading && _goals.isNotEmpty) ...[
-                _buildTipBubble(),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _goals.length,
-                    itemBuilder: (context, index) {
-                      return _buildGoalCard(_goals[index]);
-                    },
-                  ),
-                ),
-              ],
-              if (_isLoading)
-                const Expanded(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+              // Conteúdo scrollável
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _goals.isEmpty
+                        ? SingleChildScrollView(
+                            child: _buildEmptyState(),
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Resumo diário (apenas para hoje)
+                                if (_dataSelecionada.year == DateTime.now().year &&
+                                    _dataSelecionada.month == DateTime.now().month &&
+                                    _dataSelecionada.day == DateTime.now().day)
+                                  DailySummaryCard(
+                                    resumo: _resumoDiario,
+                                    isLoading: _isLoadingResumo,
+                                    onRefresh: _gerarResumoDiario,
+                                  ),
+                                _buildTipBubble(),
+                                // Lista de metas
+                                ..._goals.map((goal) => _buildGoalCard(goal)),
+                                // Espaço extra no final para evitar overflow com FAB
+                                const SizedBox(height: 80),
+                              ],
+                            ),
+                          ),
+              ),
             ],
           ),
           _buildTutorialOverlay(),
