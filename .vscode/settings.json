@@ -1,0 +1,37 @@
+{
+  "sqltools.connections": [
+    {
+      "connectionTimeout": 15,
+      "mssqlOptions": {
+        "appName": "SQLTools",
+        "useUTC": true,
+        "encrypt": true,
+        "trustServerCertificate": false
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "homologacao-db.c3o4jt8rlgmi.us-east-1.rds.amazonaws.com",
+      "port": 1433,
+      "driver": "MSSQL",
+      "name": "TruckPag",
+      "username": "vitor.paladini",
+      "password": "5Vvtpj0S"
+    },
+    {
+      "connectionTimeout": 15,
+      "mssqlOptions": {
+        "appName": "SQLTools",
+        "useUTC": true,
+        "encrypt": true,
+        "trustServerCertificate": false
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 1433,
+      "driver": "MSSQL",
+      "name": "teste",
+      "username": "vitor.paladini"
+    }
+  ]
+}

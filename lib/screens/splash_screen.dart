@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_icon.dart';
 import '../theme/app_theme.dart';
+import '../services/tutorial_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -66,6 +68,21 @@ class _SplashScreenState extends State<SplashScreen>
     } else if (!hasCompletedProfileSetup) {
       Navigator.pushReplacementNamed(context, '/profile-setup');
     } else {
+      // Iniciar tutorial se for primeira vez
+      final tutorialCompleted = await TutorialService.isTutorialCompleted();
+      final currentStep = await TutorialService.getCurrentStep();
+      debugPrint('Tutorial concluído: $tutorialCompleted');
+      debugPrint('Passo atual: $currentStep');
+      
+      if (!tutorialCompleted) {
+        // Se o passo é none, iniciar o tutorial
+        if (currentStep == TutorialStep.none) {
+          await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
+          debugPrint('Tutorial iniciado: navigateToDisciplinas');
+        } else {
+          debugPrint('Tutorial já iniciado no passo: $currentStep');
+        }
+      }
       Navigator.pushReplacementNamed(context, '/home');
     }
   }

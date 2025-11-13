@@ -4,9 +4,12 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../models/prova.dart';
 import '../services/prova_service.dart';
+import '../services/tutorial_service.dart';
 import '../widgets/prova_card.dart';
 import '../widgets/revisao_card.dart';
 import '../widgets/app_icon.dart';
+import '../widgets/tutorial_overlay.dart';
+import '../widgets/tutorial_arrow.dart';
 import 'adicionar_prova_screen.dart';
 
 class ProvaDataSource extends CalendarDataSource {
@@ -60,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Revisao> _revisoes = [];
   bool _isLoading = true;
   CalendarView _calendarView = CalendarView.month;
+  bool _showTutorial = false;
+  final GlobalKey _fabKey = GlobalKey();
 
   @override
   void initState() {
@@ -69,6 +74,34 @@ class _HomeScreenState extends State<HomeScreen> {
     // Usar addPostFrameCallback para evitar chamar setState durante build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _carregarDados();
+      _verificarTutorial();
+    });
+  }
+
+  Future<void> _verificarTutorial() async {
+    final step = await TutorialService.getCurrentStep();
+    if (step == TutorialStep.addProva) {
+      // Aguardar um pouco para garantir que a UI está renderizada
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (mounted) {
+        setState(() {
+          _showTutorial = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _proximoPassoTutorial() async {
+    await TutorialService.nextStep();
+    setState(() {
+      _showTutorial = false;
+    });
+  }
+
+  Future<void> _pularTutorial() async {
+    await TutorialService.skipTutorial();
+    setState(() {
+      _showTutorial = false;
     });
   }
 
@@ -92,19 +125,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
-    if (!isSameDay(_selectedDay, selectedDay)) {
-      setState(() {
-        _selectedDay = selectedDay;
-        _focusedDay = focusedDay;
-      });
-      
-      final revisoes = await ProvaService.obterRevisoesPorData(selectedDay);
-      setState(() {
-        _revisoes = revisoes;
-      });
-    }
-  }
 
   Future<void> _adicionarProva() async {
     final result = await Navigator.push<bool>(
@@ -116,6 +136,11 @@ class _HomeScreenState extends State<HomeScreen> {
     
     if (result == true) {
       _carregarDados();
+      // Avançar tutorial se estiver ativo
+      final step = await TutorialService.getCurrentStep();
+      if (step == TutorialStep.addProva) {
+        await _proximoPassoTutorial();
+      }
     }
   }
 
@@ -185,97 +210,109 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Seletor de formato do calendário
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildFormatButton(
-                              'Mês',
-                              CalendarView.month,
-                              Icons.calendar_view_month,
+      body: Stack(
+        children: [
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  children: [
+                    // Seletor de formato do calendário
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            _buildFormatButton(
-                              'Semana',
-                              CalendarView.week,
-                              Icons.calendar_view_week,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildFormatButton(
+                                  'Mês',
+                                  CalendarView.month,
+                                  Icons.calendar_view_month,
+                                ),
+                                _buildFormatButton(
+                                  'Semana',
+                                  CalendarView.week,
+                                  Icons.calendar_view_week,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                // Calendário
-                Card(
-                  margin: const EdgeInsets.all(16),
-                  child: SizedBox(
-                    height: 400,
-                    child: SfCalendar(
-                      view: _calendarView,
-                      initialDisplayDate: _focusedDay,
-                      initialSelectedDate: _selectedDay,
-                      onSelectionChanged: (CalendarSelectionDetails details) {
-                        if (details.date != null) {
-                          // Usar addPostFrameCallback para evitar chamar setState durante build
-                          WidgetsBinding.instance.addPostFrameCallback((_) async {
-                            if (mounted) {
-                              setState(() {
-                                _selectedDay = details.date;
-                                _focusedDay = details.date!;
-                              });
-                              await _carregarDados();
-                            }
-                          });
-                        }
-                      },
-                      onViewChanged: (ViewChangedDetails details) {
-                        // Usar addPostFrameCallback para evitar chamar setState durante build
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              _focusedDay = details.visibleDates.first;
-                            });
-                          }
-                        });
-                      },
-                      dataSource: ProvaDataSource(_provas),
-                      monthViewSettings: const MonthViewSettings(
-                        showAgenda: false,
-                        appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
-                      ),
-                      headerStyle: const CalendarHeaderStyle(
-                        textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                    
+                    // Calendário
+                    Card(
+                      margin: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        height: 400,
+                        child: SfCalendar(
+                          view: _calendarView,
+                          initialDisplayDate: _focusedDay,
+                          initialSelectedDate: _selectedDay,
+                          onSelectionChanged: (CalendarSelectionDetails details) {
+                            if (details.date != null) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                if (mounted) {
+                                  setState(() {
+                                    _selectedDay = details.date;
+                                    _focusedDay = details.date!;
+                                  });
+                                  await _carregarDados();
+                                }
+                              });
+                            }
+                          },
+                          onViewChanged: (ViewChangedDetails details) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() {
+                                  _focusedDay = details.visibleDates.first;
+                                });
+                              }
+                            });
+                          },
+                          dataSource: ProvaDataSource(_provas),
+                          monthViewSettings: const MonthViewSettings(
+                            showAgenda: false,
+                            appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+                          ),
+                          headerStyle: const CalendarHeaderStyle(
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Data selecionada e eventos
+                    Expanded(
+                      child: _selectedDay == null
+                          ? const Center(
+                              child: Text('Selecione uma data para ver os eventos'),
+                            )
+                          : _buildEventosLista(),
+                    ),
+                  ],
                 ),
-                
-                // Data selecionada e eventos
-                Expanded(
-                  child: _selectedDay == null
-                      ? const Center(
-                          child: Text('Selecione uma data para ver os eventos'),
-                        )
-                      : _buildEventosLista(),
-                ),
-              ],
+          if (_showTutorial)
+            TutorialOverlay(
+              title: '📝 Próximo Passo',
+              message: 'Ótimo! Agora vamos adicionar uma prova. Toque no botão + para cadastrar sua primeira avaliação. O app criará automaticamente um plano de revisões para você!',
+              targetKey: _fabKey,
+              arrowPosition: ArrowPosition.top,
+              onNext: _proximoPassoTutorial,
+              onSkip: _pularTutorial,
             ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
+        key: _fabKey,
         onPressed: _adicionarProva,
         child: const Icon(Icons.add),
       ),

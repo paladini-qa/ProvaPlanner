@@ -1,0 +1,750 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/daily_goal.dart';
+import '../services/daily_goal_service.dart';
+import '../services/prova_service.dart';
+import '../services/goal_suggestion_service.dart';
+import '../services/ai_service.dart';
+import '../services/gemini_service.dart';
+import '../services/ai_service_mock.dart';
+import '../config/env.dart';
+import '../widgets/daily_goal_dialog.dart';
+import '../widgets/daily_summary_card.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
+
+class DailyGoalsScreen extends StatefulWidget {
+  const DailyGoalsScreen({super.key});
+
+  @override
+  State<DailyGoalsScreen> createState() => _DailyGoalsScreenState();
+}
+
+class _DailyGoalsScreenState extends State<DailyGoalsScreen>
+    with TickerProviderStateMixin {
+  List<DailyGoal> _goals = [];
+  bool _isLoading = true;
+  DateTime _dataSelecionada = DateTime.now();
+  bool _mostrarTutorial = false;
+  bool _tutorialConcluido = false;
+  String _resumoDiario = '';
+  bool _isLoadingResumo = false;
+
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabScaleAnimation;
+  late Animation<double> _fabRotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupFabAnimations();
+    _verificarTutorial();
+    _carregarGoals();
+  }
+
+  void _setupFabAnimations() {
+    _fabAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _fabScaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
+    _fabRotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 0.1,
+    ).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fabAnimationController.repeat(reverse: true);
+  }
+
+  Future<void> _verificarTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    final concluido = prefs.getBool('daily_goals_tutorial_concluido') ?? false;
+    setState(() {
+      _tutorialConcluido = concluido;
+      if (!concluido) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setState(() {
+            _mostrarTutorial = true;
+          });
+        });
+      }
+    });
+  }
+
+  Future<void> _marcarTutorialConcluido() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('daily_goals_tutorial_concluido', true);
+    setState(() {
+      _tutorialConcluido = true;
+      _mostrarTutorial = false;
+    });
+  }
+
+  Future<void> _carregarGoals() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final goals = await DailyGoalService.obterGoalsPorData(_dataSelecionada);
+    setState(() {
+      _goals = goals;
+      _isLoading = false;
+    });
+
+    // Carregar resumo diário se for hoje
+    if (_dataSelecionada.year == DateTime.now().year &&
+        _dataSelecionada.month == DateTime.now().month &&
+        _dataSelecionada.day == DateTime.now().day) {
+      _gerarResumoDiario();
+    }
+  }
+
+  Future<void> _gerarResumoDiario() async {
+    setState(() {
+      _isLoadingResumo = true;
+    });
+
+    try {
+      // Obter dados do dia
+      final provasDoDia = await ProvaService.obterProvasPorData(_dataSelecionada);
+      final revisoesDoDia = await ProvaService.obterRevisoesPorData(_dataSelecionada);
+      final metasDoDia = _goals;
+
+      // Preparar textos
+      final provasTexto = provasDoDia.map((p) => '${p.nome} - ${p.disciplinaNome}').toList();
+      final revisoesTexto = revisoesDoDia.map((r) => r.descricao).toList();
+      final metasTexto = metasDoDia.map((m) => m.titulo).toList();
+
+      // Obter serviço de IA
+      AIService aiService;
+      
+      // Verificar se deve usar mock
+      final useMock = Env.useMockAi;
+      final apiKey = Env.geminiApiKey;
+      
+      debugPrint('=== DEBUG RESUMO ===');
+      debugPrint('useMock: $useMock');
+      debugPrint('apiKey: ${apiKey != null ? "${apiKey.substring(0, apiKey.length > 10 ? 10 : apiKey.length)}..." : "null"}');
+      
+      if (useMock || apiKey == null || apiKey.isEmpty) {
+        // Usar mock se configurado ou se não há chave
+        debugPrint('Usando AIServiceMock');
+        aiService = AIServiceMock();
+      } else {
+        try {
+          // Tentar usar Gemini real
+          debugPrint('Tentando usar GeminiService');
+          aiService = GeminiService();
+          debugPrint('GeminiService criado com sucesso');
+        } catch (e) {
+          // Se falhar, usar mock
+          debugPrint('Erro ao inicializar Gemini: $e');
+          aiService = AIServiceMock();
+        }
+      }
+
+      // Gerar resumo
+      debugPrint('Gerando resumo...');
+      final resumo = await aiService.gerarResumoDiario(
+        provas: provasTexto,
+        revisoes: revisoesTexto,
+        metas: metasTexto,
+      );
+      debugPrint('Resumo gerado com sucesso (${resumo.length} caracteres)');
+
+      setState(() {
+        _resumoDiario = resumo;
+        _isLoadingResumo = false;
+      });
+    } catch (e, stackTrace) {
+      debugPrint('=== ERRO AO GERAR RESUMO ===');
+      debugPrint('Erro: $e');
+      debugPrint('StackTrace: $stackTrace');
+      setState(() {
+        _resumoDiario = 'Erro ao gerar resumo: $e\n\nVerifique o console para mais detalhes.';
+        _isLoadingResumo = false;
+      });
+    }
+  }
+
+  Future<void> _sugerirMetas() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final sugestoes = await GoalSuggestionService.gerarSugestoes();
+
+      if (!mounted) return;
+
+      if (sugestoes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nenhuma sugestão disponível no momento.'),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Mostrar dialog para aceitar/rejeitar sugestões
+      final sugestoesAceitas = await showDialog<List<DailyGoal>>(
+        context: context,
+        builder: (context) => _SugestoesDialog(sugestoes: sugestoes),
+      );
+
+      if (sugestoesAceitas != null && sugestoesAceitas.isNotEmpty) {
+        for (final goal in sugestoesAceitas) {
+          await DailyGoalService.adicionarGoal(goal);
+        }
+        await _carregarGoals();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${sugestoesAceitas.length} meta(s) adicionada(s)!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao gerar sugestões: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _adicionarGoal() async {
+    final goal = await DailyGoalDialog.show(
+      context,
+      dataInicial: _dataSelecionada,
+    );
+
+    if (goal != null) {
+      await DailyGoalService.adicionarGoal(goal);
+      await _carregarGoals();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Meta adicionada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _editarGoal(DailyGoal goal) async {
+    final goalEditado = await DailyGoalDialog.show(
+      context,
+      goal: goal,
+    );
+
+    if (goalEditado != null) {
+      await DailyGoalService.atualizarGoal(goalEditado);
+      await _carregarGoals();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Meta atualizada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _alternarConclusao(DailyGoal goal) async {
+    final goalAtualizado = goal.copyWith(concluida: !goal.concluida);
+    await DailyGoalService.atualizarGoal(goalAtualizado);
+    await _carregarGoals();
+  }
+
+  Future<void> _removerGoal(DailyGoal goal) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar exclusão'),
+        content: Text('Deseja realmente excluir a meta "${goal.titulo}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      await DailyGoalService.removerGoal(goal.id);
+      await _carregarGoals();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Meta removida com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _selecionarData() async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate: _dataSelecionada,
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+
+    if (data != null) {
+      setState(() {
+        _dataSelecionada = data;
+        _resumoDiario = ''; // Limpar resumo ao mudar data
+      });
+      await _carregarGoals();
+    }
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.flag_outlined,
+              size: 80,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Nenhuma meta para hoje',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Toque no botão + para criar sua primeira meta diária de estudo',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[500],
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTipBubble() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.amber.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.amber.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.lightbulb_outline,
+            color: AppTheme.amber,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Dica: Crie metas específicas e mensuráveis para melhorar seu desempenho nos estudos!',
+              style: TextStyle(
+                color: AppTheme.slate,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalCard(DailyGoal goal) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: Checkbox(
+          value: goal.concluida,
+          onChanged: (_) => _alternarConclusao(goal),
+          activeColor: AppTheme.indigo,
+        ),
+        title: Text(
+          goal.titulo,
+          style: TextStyle(
+            decoration: goal.concluida
+                ? TextDecoration.lineThrough
+                : TextDecoration.none,
+            color: goal.concluida ? Colors.grey : null,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (goal.descricao.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                goal.descricao,
+                style: TextStyle(
+                  color: goal.concluida ? Colors.grey : Colors.grey[700],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: goal.corPrioridade.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    goal.prioridadeTexto,
+                    style: TextStyle(
+                      color: goal.corPrioridade,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: PopupMenuButton(
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'editar',
+              child: Row(
+                children: [
+                  Icon(Icons.edit, size: 20),
+                  SizedBox(width: 8),
+                  Text('Editar'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'excluir',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, size: 20, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Excluir', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'editar') {
+              _editarGoal(goal);
+            } else if (value == 'excluir') {
+              _removerGoal(goal);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTutorialOverlay() {
+    if (!_mostrarTutorial || _tutorialConcluido) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: _marcarTutorialConcluido,
+      child: Container(
+        color: Colors.black.withOpacity(0.7),
+        child: Center(
+          child: Card(
+            margin: const EdgeInsets.all(24),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.school,
+                    size: 48,
+                    color: AppTheme.indigo,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Bem-vindo às Metas Diárias!',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Crie metas diárias de estudo para organizar melhor seu tempo e alcançar seus objetivos acadêmicos.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _marcarTutorialConcluido,
+                    child: const Text('Entendi'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fabAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const AppIcon(size: 32),
+            const SizedBox(width: 12),
+            const Text('Metas Diárias'),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            onPressed: _sugerirMetas,
+            tooltip: 'Sugerir metas com IA',
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: _selecionarData,
+            tooltip: 'Selecionar data',
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: AppTheme.indigo.withOpacity(0.1),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      color: AppTheme.indigo,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      DateFormat('dd/MM/yyyy').format(_dataSelecionada),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.indigo,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Resumo diário (apenas para hoje)
+              if (_dataSelecionada.year == DateTime.now().year &&
+                  _dataSelecionada.month == DateTime.now().month &&
+                  _dataSelecionada.day == DateTime.now().day)
+                DailySummaryCard(
+                  resumo: _resumoDiario,
+                  isLoading: _isLoadingResumo,
+                  onRefresh: _gerarResumoDiario,
+                ),
+              if (!_isLoading && _goals.isEmpty) _buildEmptyState(),
+              if (!_isLoading && _goals.isNotEmpty) ...[
+                _buildTipBubble(),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _goals.length,
+                    itemBuilder: (context, index) {
+                      return _buildGoalCard(_goals[index]);
+                    },
+                  ),
+                ),
+              ],
+              if (_isLoading)
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
+          _buildTutorialOverlay(),
+        ],
+      ),
+      floatingActionButton: AnimatedBuilder(
+        animation: _fabAnimationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _fabScaleAnimation.value,
+            child: Transform.rotate(
+              angle: _fabRotationAnimation.value,
+              child: FloatingActionButton(
+                onPressed: _adicionarGoal,
+                child: const Icon(Icons.add),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SugestoesDialog extends StatefulWidget {
+  final List<DailyGoal> sugestoes;
+
+  const _SugestoesDialog({required this.sugestoes});
+
+  @override
+  State<_SugestoesDialog> createState() => _SugestoesDialogState();
+}
+
+class _SugestoesDialogState extends State<_SugestoesDialog> {
+  final Set<String> _sugestoesSelecionadas = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.auto_awesome, color: AppTheme.indigo),
+          const SizedBox(width: 8),
+          const Text('Sugestões de Metas'),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: widget.sugestoes.length,
+          itemBuilder: (context, index) {
+            final goal = widget.sugestoes[index];
+            final isSelecionada = _sugestoesSelecionadas.contains(goal.id);
+
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              child: CheckboxListTile(
+                value: isSelecionada,
+                onChanged: (value) {
+                  setState(() {
+                    if (value == true) {
+                      _sugestoesSelecionadas.add(goal.id);
+                    } else {
+                      _sugestoesSelecionadas.remove(goal.id);
+                    }
+                  });
+                },
+                title: Text(goal.titulo),
+                subtitle: goal.descricao.isNotEmpty
+                    ? Text(
+                        goal.descricao,
+                        style: const TextStyle(fontSize: 12),
+                      )
+                    : null,
+                secondary: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: goal.corPrioridade.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    goal.prioridadeTexto,
+                    style: TextStyle(
+                      color: goal.corPrioridade,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(<DailyGoal>[]),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final selecionadas = widget.sugestoes
+                .where((g) => _sugestoesSelecionadas.contains(g.id))
+                .toList();
+            Navigator.of(context).pop(selecionadas);
+          },
+          child: Text('Adicionar (${_sugestoesSelecionadas.length})'),
+        ),
+      ],
+    );
+  }
+}
+
