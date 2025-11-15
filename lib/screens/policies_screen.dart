@@ -53,10 +53,10 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppTheme.indigo.withOpacity(0.1),
+                      color: AppTheme.indigo.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.security,
                       size: 40,
                       color: AppTheme.indigo,
@@ -184,9 +184,9 @@ Você pode exercer seus direitos entrando em contato conosco.
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Aceitar e Continuar',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -203,7 +203,7 @@ Você pode exercer seus direitos entrando em contato conosco.
                   // Aqui você pode adicionar navegação para uma tela de detalhes
                   _showDetailedPolicies();
                 },
-                child: Text(
+                child: const Text(
                   'Ver políticas completas',
                   style: TextStyle(
                     color: AppTheme.indigo,
@@ -225,10 +225,10 @@ Você pode exercer seus direitos entrando em contato conosco.
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.indigo.withOpacity(0.05),
+        color: AppTheme.indigo.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppTheme.indigo.withOpacity(0.1),
+          color: AppTheme.indigo.withValues(alpha: 0.1),
         ),
       ),
       child: Column(

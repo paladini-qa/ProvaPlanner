@@ -85,7 +85,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           child: GestureDetector(
             onTap: widget.onNext,
             child: Container(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -178,18 +178,18 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.indigo.withOpacity(0.3),
+                  color: AppTheme.indigo.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
               ],
               border: Border.all(
-                color: AppTheme.indigo.withOpacity(0.3),
+                color: AppTheme.indigo.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -205,10 +205,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.indigo.withOpacity(0.1),
+                          color: AppTheme.indigo.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.lightbulb,
                           color: AppTheme.indigo,
                           size: 24,
@@ -290,7 +290,7 @@ class TutorialPainter extends CustomPainter {
 
     // Desenhar highlight no alvo com efeito de brilho
     final paint = Paint()
-      ..color = AppTheme.indigo.withOpacity(0.2)
+      ..color = AppTheme.indigo.withValues(alpha: 0.2)
       ..style = PaintingStyle.fill;
 
     final rect = RRect.fromRectAndRadius(

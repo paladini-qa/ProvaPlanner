@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -563,7 +562,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                               children: [
                                 CircleAvatar(
                                   radius: 50,
-                                  backgroundColor: AppTheme.indigo.withOpacity(0.1),
+                                  backgroundColor: AppTheme.indigo.withValues(alpha: 0.1),
                                   backgroundImage: _getBackgroundImage(),
                                   child: _getAvatarChild(),
                                 ),

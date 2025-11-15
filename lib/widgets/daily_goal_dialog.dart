@@ -66,6 +66,12 @@ class _DailyGoalDialogState extends State<DailyGoalDialog> {
       initialDate: _data,
       firstDate: DateTime.now().subtract(const Duration(days: 30)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context),
+          child: child!,
+        );
+      },
     );
 
     if (data != null) {
@@ -145,7 +151,7 @@ class _DailyGoalDialogState extends State<DailyGoalDialog> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<PrioridadeMeta>(
-                value: _prioridade,
+                initialValue: _prioridade,
                 decoration: const InputDecoration(
                   labelText: 'Prioridade',
                   border: OutlineInputBorder(),

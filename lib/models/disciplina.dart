@@ -26,7 +26,7 @@ class Disciplina {
       'professor': professor,
       'periodo': periodo,
       'descricao': descricao,
-      'cor': cor.value,
+      'cor': cor.toARGB32(),
       'dataCriacao': dataCriacao.toIso8601String(),
     };
   }

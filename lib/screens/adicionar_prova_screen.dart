@@ -4,7 +4,6 @@ import '../models/prova.dart';
 import '../models/disciplina.dart';
 import '../services/prova_service.dart';
 import '../services/disciplina_service.dart';
-import '../theme/app_theme.dart';
 
 class AdicionarProvaScreen extends StatefulWidget {
   const AdicionarProvaScreen({super.key});
@@ -19,21 +18,9 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
   final _descricaoController = TextEditingController();
   
   DateTime _dataProva = DateTime.now().add(const Duration(days: 7));
-  Color _corSelecionada = AppTheme.indigo;
   Disciplina? _disciplinaSelecionada;
   List<Disciplina> _disciplinas = [];
   bool _isLoadingDisciplinas = true;
-  
-  final List<Color> _coresDisponiveis = [
-    AppTheme.indigo,
-    AppTheme.amber,
-    Colors.red,
-    Colors.green,
-    Colors.purple,
-    Colors.teal,
-    Colors.orange,
-    Colors.pink,
-  ];
 
   @override
   void initState() {
@@ -62,6 +49,12 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
       initialDate: _dataProva,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context),
+          child: child!,
+        );
+      },
     );
     
     if (data != null) {
@@ -150,7 +143,7 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
             
             // Seleção de Disciplina
             DropdownButtonFormField<Disciplina>(
-              value: _disciplinaSelecionada,
+              initialValue: _disciplinaSelecionada,
               decoration: const InputDecoration(
                 labelText: 'Disciplina *',
                 border: OutlineInputBorder(),
@@ -191,9 +184,9 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -219,17 +212,17 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _disciplinaSelecionada!.cor.withOpacity(0.1),
+                  color: _disciplinaSelecionada!.cor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _disciplinaSelecionada!.cor.withOpacity(0.3),
+                    color: _disciplinaSelecionada!.cor.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: _disciplinaSelecionada!.cor.withOpacity(0.2),
+                      backgroundColor: _disciplinaSelecionada!.cor.withValues(alpha: 0.2),
                       child: Icon(
                         Icons.school,
                         size: 20,

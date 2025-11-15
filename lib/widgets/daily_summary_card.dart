@@ -52,7 +52,7 @@ class DailySummaryCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 4,
-      color: AppTheme.indigo.withOpacity(0.05),
+      color: AppTheme.indigo.withValues(alpha: 0.05),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -61,7 +61,7 @@ class DailySummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.auto_awesome,
                   color: AppTheme.indigo,
                   size: 24,

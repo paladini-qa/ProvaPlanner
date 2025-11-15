@@ -179,7 +179,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
             'Verifique sua conexão com a internet e tente novamente.';
       } else {
         mensagemErro = 'Erro ao gerar resumo.\n\n'
-            'Detalhes: ${errorStr.length > 100 ? errorStr.substring(0, 100) + "..." : errorStr}\n\n'
+            'Detalhes: ${errorStr.length > 100 ? '${errorStr.substring(0, 100)}...' : errorStr}\n\n'
             'Verifique o console para mais informações.';
       }
       
@@ -339,6 +339,12 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
       initialDate: _dataSelecionada,
       firstDate: DateTime.now().subtract(const Duration(days: 30)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context),
+          child: child!,
+        );
+      },
     );
 
     if (data != null) {
@@ -388,21 +394,21 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.amber.withOpacity(0.1),
+        color: AppTheme.amber.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppTheme.amber.withOpacity(0.3),
+          color: AppTheme.amber.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
-      child: Row(
+      child: const Row(
         children: [
           Icon(
             Icons.lightbulb_outline,
             color: AppTheme.amber,
             size: 24,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               'Dica: Crie metas específicas e mensuráveis para melhorar seu desempenho nos estudos!',
@@ -457,7 +463,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: goal.corPrioridade.withOpacity(0.2),
+                    color: goal.corPrioridade.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -516,7 +522,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
     return GestureDetector(
       onTap: _marcarTutorialConcluido,
       child: Container(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         child: Center(
           child: Card(
             margin: const EdgeInsets.all(24),
@@ -525,7 +531,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.school,
                     size: 48,
                     color: AppTheme.indigo,
@@ -566,11 +572,11 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
-            const AppIcon(size: 32),
-            const SizedBox(width: 12),
-            const Text('Metas Diárias'),
+            AppIcon(size: 32),
+            SizedBox(width: 12),
+            Text('Metas Diárias'),
           ],
         ),
         actions: [
@@ -592,17 +598,17 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
-                color: AppTheme.indigo.withOpacity(0.1),
+                color: AppTheme.indigo.withValues(alpha: 0.1),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.calendar_today,
                       color: AppTheme.indigo,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       DateFormat('dd/MM/yyyy').format(_dataSelecionada),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.indigo,
@@ -681,11 +687,11 @@ class _SugestoesDialogState extends State<_SugestoesDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
+      title: const Row(
         children: [
           Icon(Icons.auto_awesome, color: AppTheme.indigo),
-          const SizedBox(width: 8),
-          const Text('Sugestões de Metas'),
+          SizedBox(width: 8),
+          Text('Sugestões de Metas'),
         ],
       ),
       content: SizedBox(
@@ -723,7 +729,7 @@ class _SugestoesDialogState extends State<_SugestoesDialog> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: goal.corPrioridade.withOpacity(0.2),
+                    color: goal.corPrioridade.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(

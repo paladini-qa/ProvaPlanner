@@ -4,8 +4,6 @@ import 'package:path_provider/path_provider.dart';
 
 class LocalPhotoStore {
   static const String _avatarFileName = 'avatar.jpg';
-  static const int _maxWidth = 512;
-  static const int _maxHeight = 512;
   static const int _quality = 80;
   static const int _maxFileSizeBytes = 200 * 1024; // 200KB
 

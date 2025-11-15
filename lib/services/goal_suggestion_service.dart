@@ -38,7 +38,7 @@ class GoalSuggestionService {
     // Preparar dados para IA
     final provasTexto = provasProximas.map((p) {
       final diasRestantes = p.dataProva.difference(hoje).inDays;
-      return '${p.nome} (${p.disciplinaNome}) - ${diasRestantes} dia(s)';
+      return '${p.nome} (${p.disciplinaNome}) - $diasRestantes dia(s)';
     }).toList();
 
     final revisoesTexto = todasRevisoes.map((r) {
@@ -55,8 +55,7 @@ class GoalSuggestionService {
     // Converter sugestões em DailyGoals
     final goals = sugestoesIA.map((sugestao) {
       return DailyGoal(
-        id: DateTime.now().millisecondsSinceEpoch.toString() +
-            '_sug_${sugestoesIA.indexOf(sugestao)}',
+        id: '${DateTime.now().millisecondsSinceEpoch}_sug_${sugestoesIA.indexOf(sugestao)}',
         titulo: sugestao['titulo'] ?? '',
         descricao: sugestao['descricao'] ?? '',
         data: hoje,

@@ -2,10 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:prova_planner/repositories/profile_repository.dart';
 import 'package:prova_planner/services/preferences_service.dart';
-import 'package:prova_planner/services/local_photo_store.dart';
 
 void main() {
   group('ProfileRepository', () {

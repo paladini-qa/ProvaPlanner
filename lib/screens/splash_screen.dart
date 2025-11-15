@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_icon.dart';
 import '../theme/app_theme.dart';
@@ -59,25 +58,33 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
     final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;
-    final hasCompletedProfileSetup = prefs.getBool('profile_setup_completed') ?? false;
+    final hasCompletedProfileSetup =
+        prefs.getBool('profile_setup_completed') ?? false;
 
     if (!hasSeenOnboarding) {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/onboarding');
     } else if (!hasAcceptedPolicies) {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/policies');
     } else if (!hasCompletedProfileSetup) {
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/profile-setup');
     } else {
       // Iniciar tutorial se for primeira vez
       final tutorialCompleted = await TutorialService.isTutorialCompleted();
       final currentStep = await TutorialService.getCurrentStep();
-      
+
+      if (!mounted) return;
+
       if (!tutorialCompleted) {
         // Se o passo é none, iniciar o tutorial
         if (currentStep == TutorialStep.none) {
-          await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
+          await TutorialService.setCurrentStep(
+              TutorialStep.navigateToDisciplinas);
         }
       }
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     }
   }
@@ -112,9 +119,9 @@ class _SplashScreenState extends State<SplashScreen>
                 },
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Nome do app
             AnimatedBuilder(
               animation: _fadeAnimation,
@@ -124,17 +131,17 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Text(
                     'ProvaPlanner',
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 32,
-                    ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 32,
+                        ),
                   ),
                 );
               },
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Descrição
             AnimatedBuilder(
               animation: _fadeAnimation,
@@ -144,17 +151,17 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Text(
                     'Organize suas provas e estudos',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                 );
               },
             ),
-            
+
             const SizedBox(height: 64),
-            
+
             // Indicador de carregamento
             AnimatedBuilder(
               animation: _fadeAnimation,

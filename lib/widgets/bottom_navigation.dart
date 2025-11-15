@@ -66,7 +66,7 @@ class CustomBottomNavigation extends StatelessWidget {
       iconWidget = Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.indigo.withOpacity(0.2),
+          color: AppTheme.indigo.withValues(alpha: 0.2),
           shape: BoxShape.circle,
           border: Border.all(
             color: AppTheme.indigo,

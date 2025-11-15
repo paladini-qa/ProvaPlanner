@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -334,7 +333,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         actions: [
           TextButton(
             onPressed: _pularConfiguracao,
-            child: Text(
+            child: const Text(
               'Pular',
               style: TextStyle(
                 color: AppTheme.slateLight,
@@ -364,7 +363,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           color: AppTheme.indigo.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.person_add,
                               size: 40,
                               color: AppTheme.indigo,
@@ -557,7 +556,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     Center(
                       child: TextButton(
                         onPressed: _pularConfiguracao,
-                        child: Text(
+                        child: const Text(
                           'Pular por enquanto',
                           style: TextStyle(
                             color: AppTheme.slateLight,

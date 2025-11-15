@@ -95,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (_currentPage > 0)
           TextButton(
             onPressed: _previousPage,
-            child: Text(
+            child: const Text(
               'Anterior',
               style: TextStyle(
                 color: AppTheme.slateLighter,
@@ -146,7 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onPressed: _aceitarTudo,
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.indigo,
-              side: BorderSide(color: AppTheme.indigo),
+              side: const BorderSide(color: AppTheme.indigo),
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 16,
@@ -155,12 +155,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.check_circle, size: 20),
-                const SizedBox(width: 8),
-                const Text(
+                Icon(Icons.check_circle, size: 20),
+                SizedBox(width: 8),
+                Text(
                   'Aceitar Tudo e Continuar',
                   style: TextStyle(
                     fontSize: 16,
@@ -232,11 +232,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const SizedBox(width: 12),
                   Text(
                     'ProvaPlanner',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppTheme.indigo,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: AppTheme.indigo,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
                 ],
               ),
             ),
@@ -271,7 +271,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     decoration: BoxDecoration(
                       color: _currentPage == index
                           ? AppTheme.indigo
-                          : AppTheme.indigo.withOpacity(0.3),
+                          : AppTheme.indigo.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -303,7 +303,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: page.color.withOpacity(0.1),
+              color: page.color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(

@@ -191,11 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
-            const AppIcon(size: 32),
-            const SizedBox(width: 12),
-            const Text('ProvaPlanner'),
+            AppIcon(size: 32),
+            SizedBox(width: 12),
+            Text('ProvaPlanner'),
           ],
         ),
         actions: [
@@ -331,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(

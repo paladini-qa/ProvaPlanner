@@ -91,7 +91,7 @@ class Prova {
       'dataProva': dataProva.toIso8601String(),
       'descricao': descricao,
       'revisoes': revisoes.map((r) => r.toJson()).toList(),
-      'cor': cor.value,
+      'cor': cor.toARGB32(),
     };
   }
 

@@ -3,8 +3,6 @@ import 'package:intl/intl.dart';
 import '../models/disciplina.dart';
 import '../models/prova.dart';
 import '../services/prova_service.dart';
-import '../theme/app_theme.dart';
-import '../widgets/prova_card.dart';
 
 class DetalhesDisciplinaScreen extends StatefulWidget {
   final Disciplina disciplina;
@@ -67,7 +65,7 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                           Row(
                             children: [
                               CircleAvatar(
-                                backgroundColor: widget.disciplina.cor.withOpacity(0.1),
+                                backgroundColor: widget.disciplina.cor.withValues(alpha: 0.1),
                                 child: Icon(
                                   Icons.school,
                                   color: widget.disciplina.cor,
@@ -241,10 +239,10 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: isConcluida 
-                  ? Colors.green.withOpacity(0.1)
+                  ? Colors.green.withValues(alpha: 0.1)
                   : isProxima 
-                      ? Colors.orange.withOpacity(0.1)
-                      : widget.disciplina.cor.withOpacity(0.1),
+                      ? Colors.orange.withValues(alpha: 0.1)
+                      : widget.disciplina.cor.withValues(alpha: 0.1),
               child: Icon(
                 isConcluida 
                     ? Icons.check_circle

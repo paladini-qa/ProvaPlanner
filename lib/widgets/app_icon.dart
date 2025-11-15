@@ -42,9 +42,9 @@ class AppIcon extends StatelessWidget {
                   // Cabeçalho do calendário
                   Container(
                     height: size * 0.2,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppTheme.amber,
-                      borderRadius: const BorderRadius.only(
+                      borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),
                         topRight: Radius.circular(4),
                       ),
@@ -53,9 +53,9 @@ class AppIcon extends StatelessWidget {
                       child: Container(
                         width: size * 0.3,
                         height: size * 0.08,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(2),
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
                         ),
                       ),
                     ),
@@ -137,9 +137,9 @@ class AppIcon extends StatelessWidget {
                       child: Container(
                         width: size * 0.1,
                         height: size * 0.08,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppTheme.slate,
-                          borderRadius: const BorderRadius.only(
+                          borderRadius: BorderRadius.only(
                             bottomLeft: Radius.circular(1),
                             bottomRight: Radius.circular(1),
                           ),

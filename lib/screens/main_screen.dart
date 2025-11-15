@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'home_screen.dart';
 import 'disciplinas_screen.dart';
 import 'daily_goals_screen.dart';

@@ -12,8 +12,8 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       await SharedPreferences.getInstance();
       
-      testWidget = MaterialApp(
-        home: const PerfilScreen(),
+      testWidget = const MaterialApp(
+        home: PerfilScreen(),
       );
     });
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/disciplina.dart';
 import '../services/disciplina_service.dart';
 import '../theme/app_theme.dart';
@@ -176,7 +175,7 @@ class _AdicionarDisciplinaScreenState extends State<AdicionarDisciplinaScreen> {
               
               // Período
               DropdownButtonFormField<String>(
-                value: _periodoSelecionado,
+                initialValue: _periodoSelecionado,
                 decoration: const InputDecoration(
                   labelText: 'Período *',
                   border: OutlineInputBorder(),

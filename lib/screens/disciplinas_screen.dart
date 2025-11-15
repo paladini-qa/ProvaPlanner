@@ -162,11 +162,11 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
-            const AppIcon(size: 32),
-            const SizedBox(width: 12),
-            const Text('Disciplinas'),
+            AppIcon(size: 32),
+            SizedBox(width: 12),
+            Text('Disciplinas'),
           ],
         ),
         actions: [
@@ -269,7 +269,7 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: disciplina.cor.withOpacity(0.1),
+              backgroundColor: disciplina.cor.withValues(alpha: 0.1),
               child: Icon(
                 Icons.school,
                 color: disciplina.cor,
