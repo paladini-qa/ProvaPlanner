@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prova_planner/lib/models/dtos/tarefa_dto.dart';
-import 'package:prova_planner/lib/models/entities/tarefa.dart';
-import 'package:prova_planner/lib/models/mappers/tarefa_mapper.dart';
+import 'package:prova_planner/models/dtos/tarefa_dto.dart';
+import 'package:prova_planner/models/entities/tarefa.dart';
+import 'package:prova_planner/models/mappers/tarefa_mapper.dart';
 
 void main() {
   group('TarefaMapper', () {

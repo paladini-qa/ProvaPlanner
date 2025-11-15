@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prova_planner/lib/models/dtos/anotacao_dto.dart';
-import 'package:prova_planner/lib/models/entities/anotacao.dart';
-import 'package:prova_planner/lib/models/mappers/anotacao_mapper.dart';
+import 'package:prova_planner/models/dtos/anotacao_dto.dart';
+import 'package:prova_planner/models/entities/anotacao.dart';
+import 'package:prova_planner/models/mappers/anotacao_mapper.dart';
 
 void main() {
   group('AnotacaoMapper', () {

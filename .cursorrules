@@ -1,0 +1,80 @@
+# Cursor Rules para ProvaPlanner
+
+## Estrutura do Projeto - Clean Architecture
+
+Este projeto segue os princípios da Clean Architecture com as seguintes camadas:
+
+### Domain Layer (`lib/domain/`)
+- **Entities**: `lib/domain/entities/` - Entidades de domínio puras (sem dependências do Flutter)
+- **Repositories**: `lib/domain/repositories/` - Interfaces abstratas de repositórios
+- **Use Cases**: `lib/domain/usecases/` - Casos de uso da aplicação
+
+### Data Layer (`lib/data/`)
+- **Data Sources**: `lib/data/datasources/` - Fontes de dados (local, remoto)
+- **Models (DTOs)**: `lib/data/models/` - Data Transfer Objects para serialização
+- **Mappers**: `lib/data/mappers/` - Conversores entre Entity e DTO
+- **Repositories**: `lib/data/repositories/` - Implementações concretas dos repositórios
+
+### Presentation Layer (`lib/presentation/`)
+- **Extensions**: `lib/presentation/extensions/` - Extensões para entidades (lógica de UI)
+- **Services**: `lib/presentation/services/` - Serviços de apresentação (wrappers)
+
+### Estrutura Antiga (ainda existente para alguns modelos)
+- **Models**: `lib/models/` - Alguns modelos ainda não migrados
+  - Entities: `lib/models/entities/`
+  - DTOs: `lib/models/dtos/`
+  - Mappers: `lib/models/mappers/`
+
+## Regras de Import
+
+### Para testes:
+- **IMPORTANTE**: Em Dart, imports de pacote NÃO devem incluir `/lib` no caminho
+- Use: `package:prova_planner/models/...` (correto)
+- NÃO use: `package:prova_planner/lib/models/...` (incorreto)
+- Para modelos antigos: `package:prova_planner/models/...`
+- Para nova estrutura: `package:prova_planner/domain/...` ou `package:prova_planner/data/...`
+
+### Ao corrigir imports quebrados:
+1. Verifique primeiro se o arquivo existe na estrutura antiga (`lib/models/`)
+2. Se não existir, verifique na nova estrutura (`lib/domain/` ou `lib/data/`)
+3. Atualize os imports nos testes para apontar para o caminho correto
+
+## Correção Automática de Problemas
+
+Quando encontrar erros de import:
+1. Verifique a estrutura atual do projeto
+2. Corrija os imports para apontar para os caminhos corretos
+3. Se os arquivos foram movidos para Clean Architecture, atualize os imports nos testes
+
+## Convenções
+
+- **Entities**: Sempre no `domain/entities/` (nova estrutura) ou `models/entities/` (antiga)
+- **DTOs**: Sempre no `data/models/` (nova estrutura) ou `models/dtos/` (antiga)
+- **Mappers**: Sempre no `data/mappers/` (nova estrutura) ou `models/mappers/` (antiga)
+- **Repositories**: Interfaces no `domain/repositories/`, implementações no `data/repositories/`
+
+## Exemplo de Correção
+
+Se um teste tem:
+```dart
+import 'package:prova_planner/lib/models/dtos/aluno_dto.dart';  // ERRADO - tem /lib
+```
+
+Corrija para:
+```dart
+import 'package:prova_planner/models/dtos/aluno_dto.dart';  // CORRETO - sem /lib
+```
+
+Se o arquivo foi movido para Clean Architecture (`lib/data/models/aluno_dto.dart`), atualize para:
+```dart
+import 'package:prova_planner/data/models/aluno_dto.dart';  // CORRETO - sem /lib
+```
+
+## Regra Geral de Imports
+
+**SEMPRE remova `/lib` dos imports de pacote em Dart!**
+- O Dart automaticamente resolve o diretório `lib/`
+- Caminho do arquivo: `lib/models/aluno.dart`
+- Import correto: `package:prova_planner/models/aluno.dart`
+- Import errado: `package:prova_planner/lib/models/aluno.dart`
+

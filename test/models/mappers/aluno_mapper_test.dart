@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prova_planner/lib/models/dtos/aluno_dto.dart';
-import 'package:prova_planner/lib/models/entities/aluno.dart';
-import 'package:prova_planner/lib/models/mappers/aluno_mapper.dart';
+import 'package:prova_planner/models/dtos/aluno_dto.dart';
+import 'package:prova_planner/models/entities/aluno.dart';
+import 'package:prova_planner/models/mappers/aluno_mapper.dart';
 
 void main() {
   group('AlunoMapper', () {
