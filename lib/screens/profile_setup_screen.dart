@@ -68,7 +68,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Future<void> _mostrarOpcoesFoto() async {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -142,7 +142,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _selecionarFoto(ImageSource source) async {
     try {
       // Verificar permissões
-      bool hasPermission = await _verificarPermissoes(source);
+      final bool hasPermission = await _verificarPermissoes(source);
       if (!hasPermission) {
         _mostrarErroPermissao(source);
         return;
@@ -230,7 +230,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   void _mostrarErroPermissao(ImageSource source) {
     final String tipo = source == ImageSource.camera ? 'câmera' : 'galeria';
     
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Permissão Necessária'),

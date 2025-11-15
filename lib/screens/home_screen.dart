@@ -1,51 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+
 import '../models/prova.dart';
 import '../services/prova_service.dart';
 import '../services/tutorial_service.dart';
+import '../widgets/app_icon.dart';
 import '../widgets/prova_card.dart';
 import '../widgets/revisao_card.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/tutorial_overlay.dart';
 import '../widgets/tutorial_arrow.dart';
+import '../widgets/tutorial_overlay.dart';
 import 'adicionar_prova_screen.dart';
 
 class ProvaDataSource extends CalendarDataSource {
   ProvaDataSource(List<Prova> provas) {
-    appointments = provas.map((prova) => Appointment(
-      startTime: prova.dataProva,
-      endTime: prova.dataProva.add(const Duration(hours: 1)),
-      subject: prova.nome,
-      color: prova.cor,
-      notes: prova.descricao,
-    )).toList();
+    appointments = provas
+        .map((prova) => Appointment(
+              startTime: prova.dataProva,
+              endTime: prova.dataProva.add(const Duration(hours: 1)),
+              subject: prova.nome,
+              color: prova.cor,
+              notes: prova.descricao,
+            ))
+        .toList();
   }
 
   @override
   DateTime getStartTime(int index) {
-    return appointments![index].startTime;
+    return appointments![index].startTime as DateTime;
   }
 
   @override
   DateTime getEndTime(int index) {
-    return appointments![index].endTime;
+    return appointments![index].endTime as DateTime;
   }
 
   @override
   String getSubject(int index) {
-    return appointments![index].subject;
+    return appointments![index].subject as String;
   }
 
   @override
   Color getColor(int index) {
-    return appointments![index].color;
+    return appointments![index].color as Color;
   }
 
   @override
   String getNotes(int index) {
-    return appointments![index].notes;
+    return appointments![index].notes as String;
   }
 }
 
@@ -82,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final step = await TutorialService.getCurrentStep();
     if (step == TutorialStep.addProva) {
       // Aguardar um pouco para garantir que a UI está renderizada
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       if (mounted) {
         setState(() {
           _showTutorial = true;
@@ -112,19 +115,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _carregarDados() async {
     setState(() => _isLoading = true);
-    
+
     final provas = await ProvaService.carregarProvas();
-    final revisoes = _selectedDay != null 
+    final revisoes = _selectedDay != null
         ? await ProvaService.obterRevisoesPorData(_selectedDay!)
         : <Revisao>[];
-    
+
     setState(() {
       _provas = provas;
       _revisoes = revisoes;
       _isLoading = false;
     });
   }
-
 
   Future<void> _adicionarProva() async {
     final result = await Navigator.push<bool>(
@@ -133,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => const AdicionarProvaScreen(),
       ),
     );
-    
+
     if (result == true) {
       _carregarDados();
       // Avançar tutorial se estiver ativo
@@ -151,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFormatButton(String label, CalendarView view, IconData icon) {
     final isSelected = _calendarView == view;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -161,7 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          color:
+              isSelected ? Theme.of(context).primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
@@ -218,7 +221,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // Seletor de formato do calendário
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -246,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    
+
                     // Calendário
                     Card(
                       margin: const EdgeInsets.all(16),
@@ -256,9 +260,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           view: _calendarView,
                           initialDisplayDate: _focusedDay,
                           initialSelectedDate: _selectedDay,
-                          onSelectionChanged: (CalendarSelectionDetails details) {
+                          onSelectionChanged:
+                              (CalendarSelectionDetails details) {
                             if (details.date != null) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                              WidgetsBinding.instance
+                                  .addPostFrameCallback((_) async {
                                 if (mounted) {
                                   setState(() {
                                     _selectedDay = details.date;
@@ -281,7 +287,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           dataSource: ProvaDataSource(_provas),
                           monthViewSettings: const MonthViewSettings(
                             showAgenda: false,
-                            appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
+                            appointmentDisplayMode:
+                                MonthAppointmentDisplayMode.appointment,
                           ),
                           headerStyle: const CalendarHeaderStyle(
                             textAlign: TextAlign.center,
@@ -289,12 +296,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    
+
                     // Data selecionada e eventos
                     Expanded(
                       child: _selectedDay == null
                           ? const Center(
-                              child: Text('Selecione uma data para ver os eventos'),
+                              child: Text(
+                                  'Selecione uma data para ver os eventos'),
                             )
                           : _buildEventosLista(),
                     ),
@@ -303,7 +311,8 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_showTutorial)
             TutorialOverlay(
               title: '📝 Próximo Passo',
-              message: 'Ótimo! Agora vamos adicionar uma prova. Toque no botão + para cadastrar sua primeira avaliação. O app criará automaticamente um plano de revisões para você!',
+              message:
+                  'Ótimo! Agora vamos adicionar uma prova. Toque no botão + para cadastrar sua primeira avaliação. O app criará automaticamente um plano de revisões para você!',
               targetKey: _fabKey,
               arrowPosition: ArrowPosition.top,
               onNext: _proximoPassoTutorial,
@@ -344,16 +353,16 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 DateFormat('EEEE, d MMMM y', 'pt_BR').format(_selectedDay!),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
             ],
           ),
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Provas do dia
         if (provasDoDia.isNotEmpty) ...[
           Text(
@@ -362,12 +371,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8),
           ...provasDoDia.map((prova) => ProvaCard(
-            prova: prova,
-            onTap: () => _mostrarDetalhesProva(prova),
-          )),
+                prova: prova,
+                onTap: () => _mostrarDetalhesProva(prova),
+              )),
           const SizedBox(height: 16),
         ],
-        
+
         // Revisões do dia
         if (_revisoes.isNotEmpty) ...[
           Text(
@@ -376,23 +385,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8),
           ..._revisoes.map((revisao) => RevisaoCard(
-            revisao: revisao,
-            onToggle: (concluida) {
-              // Encontrar a prova da revisão
-              for (final prova in _provas) {
-                final revisaoEncontrada = prova.revisoes.firstWhere(
-                  (r) => r.id == revisao.id,
-                  orElse: () => revisao,
-                );
-                if (revisaoEncontrada.id == revisao.id) {
-                  _marcarRevisaoConcluida(prova.id, revisao.id);
-                  break;
-                }
-              }
-            },
-          )),
+                revisao: revisao,
+                onToggle: (concluida) {
+                  // Encontrar a prova da revisão
+                  for (final prova in _provas) {
+                    final revisaoEncontrada = prova.revisoes.firstWhere(
+                      (r) => r.id == revisao.id,
+                      orElse: () => revisao,
+                    );
+                    if (revisaoEncontrada.id == revisao.id) {
+                      _marcarRevisaoConcluida(prova.id, revisao.id);
+                      break;
+                    }
+                  }
+                },
+              )),
         ],
-        
+
         // Mensagem quando não há eventos
         if (provasDoDia.isEmpty && _revisoes.isEmpty)
           Center(
@@ -407,15 +416,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   'Nenhum evento para esta data',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                        color: Colors.grey[600],
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Toque no + para adicionar uma prova',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
+                        color: Colors.grey[500],
+                      ),
                 ),
               ],
             ),
@@ -425,7 +434,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _mostrarDetalhesProva(Prova prova) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(prova.nome),
@@ -447,14 +456,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             ...prova.revisoes.map((revisao) => ListTile(
-              leading: Icon(
-                revisao.concluida ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: revisao.concluida ? Colors.green : Colors.grey,
-              ),
-              title: Text(revisao.descricao),
-              subtitle: Text(DateFormat('dd/MM/yyyy').format(revisao.data)),
-              dense: true,
-            )),
+                  leading: Icon(
+                    revisao.concluida
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: revisao.concluida ? Colors.green : Colors.grey,
+                  ),
+                  title: Text(revisao.descricao),
+                  subtitle: Text(DateFormat('dd/MM/yyyy').format(revisao.data)),
+                  dense: true,
+                )),
           ],
         ),
         actions: [

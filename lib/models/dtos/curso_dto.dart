@@ -15,11 +15,11 @@ class CursoDto {
 
   factory CursoDto.fromJson(Map<String, dynamic> json) {
     return CursoDto(
-      id: json['id'],
-      nome: json['nome'],
-      descricao: json['descricao'],
-      cargaHoraria: json['cargaHoraria'],
-      dataCriacao: json['dataCriacao'],
+      id: json['id'] as String,
+      nome: json['nome'] as String,
+      descricao: json['descricao'] as String,
+      cargaHoraria: json['cargaHoraria'] as int,
+      dataCriacao: json['dataCriacao'] as String,
     );
   }
 

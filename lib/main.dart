@@ -4,6 +4,8 @@ import 'screens/onboarding_screen.dart';
 import 'screens/policies_screen.dart';
 import 'screens/profile_setup_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'theme/app_theme.dart';
 import 'config/env.dart';
 import 'config/supabase_config.dart';
@@ -44,6 +46,8 @@ class ProvaPlannerApp extends StatelessWidget {
         '/policies': (context) => const PoliciesScreen(),
         '/profile-setup': (context) => const ProfileSetupScreen(),
         '/home': (context) => const MainScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
       },
     );
   }

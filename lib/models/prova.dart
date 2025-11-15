@@ -97,16 +97,16 @@ class Prova {
 
   factory Prova.fromJson(Map<String, dynamic> json) {
     return Prova(
-      id: json['id'],
-      nome: json['nome'],
-      disciplinaId: json['disciplinaId'] ?? json['disciplina'] ?? '',
-      disciplinaNome: json['disciplinaNome'] ?? json['disciplina'] ?? '',
-      dataProva: DateTime.parse(json['dataProva']),
-      descricao: json['descricao'] ?? '',
-      revisoes: (json['revisoes'] as List)
-          .map((r) => Revisao.fromJson(r))
+      id: json['id'] as String,
+      nome: json['nome'] as String,
+      disciplinaId: (json['disciplinaId'] as String?) ?? (json['disciplina'] as String?) ?? '',
+      disciplinaNome: (json['disciplinaNome'] as String?) ?? (json['disciplina'] as String?) ?? '',
+      dataProva: DateTime.parse(json['dataProva'] as String),
+      descricao: (json['descricao'] as String?) ?? '',
+      revisoes: ((json['revisoes'] as List<dynamic>?) ?? [])
+          .map((r) => Revisao.fromJson(r as Map<String, dynamic>))
           .toList(),
-      cor: Color(json['cor']),
+      cor: Color(json['cor'] as int),
     );
   }
 }
@@ -135,10 +135,10 @@ class Revisao {
 
   factory Revisao.fromJson(Map<String, dynamic> json) {
     return Revisao(
-      id: json['id'],
-      data: DateTime.parse(json['data']),
-      concluida: json['concluida'],
-      descricao: json['descricao'],
+      id: json['id'] as String,
+      data: DateTime.parse(json['data'] as String),
+      concluida: (json['concluida'] as bool?) ?? false,
+      descricao: json['descricao'] as String,
     );
   }
 

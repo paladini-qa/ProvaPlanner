@@ -3,7 +3,7 @@ import '../theme/app_theme.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
+  final void Function(int) onTap;
   final int? highlightIndex;
   final GlobalKey? disciplinasKey;
 

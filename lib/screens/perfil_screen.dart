@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../repositories/profile_repository.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -32,12 +34,20 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _carregarDadosUsuario() async {
     try {
+      // Tentar obter email do usuário autenticado
+      String? authEmail;
+      try {
+        authEmail = AuthService.currentUserEmail;
+      } catch (e) {
+        // Supabase não configurado ou usuário não autenticado
+      }
+
       // Carregar dados usando ProfileRepository
       final profileData = await ProfileRepository.getProfileData();
       
       setState(() {
         _nome = profileData['name'] as String;
-        _email = profileData['email'] as String;
+        _email = authEmail ?? profileData['email'] as String;
         _notificacoesHabilitadas = profileData['notificationsEnabled'] as bool;
         _fotoPath = profileData['photoPath'] as String?;
         _isLoading = false;
@@ -49,9 +59,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
       // Fallback para SharedPreferences se ProfileRepository falhar
       final prefs = await SharedPreferences.getInstance();
       
+      // Tentar obter email do usuário autenticado
+      String? authEmail;
+      try {
+        authEmail = AuthService.currentUserEmail;
+      } catch (e) {
+        // Supabase não configurado ou usuário não autenticado
+      }
+      
       setState(() {
         _nome = prefs.getString('nome_usuario') ?? 'Usuário';
-        _email = prefs.getString('email_usuario') ?? 'usuario@exemplo.com';
+        _email = authEmail ?? prefs.getString('email_usuario') ?? 'usuario@exemplo.com';
         _notificacoesHabilitadas = prefs.getBool('notifications_enabled') ?? true;
         _fotoPath = null;
         _isLoading = false;
@@ -155,9 +173,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
     if (result != null) {
       setState(() {
-        _nome = result['nome'];
-        _email = result['email'];
-        _notificacoesHabilitadas = result['notificacoes'];
+        _nome = result['nome'] as String;
+        _email = result['email'] as String;
+        _notificacoesHabilitadas = result['notificacoes'] as bool;
       });
       await _salvarDadosUsuario();
     }
@@ -166,7 +184,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Future<void> _mostrarOpcoesFoto() async {
     final hasPhoto = kIsWeb ? _fotoData != null : _fotoPath != null;
     
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -240,7 +258,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   Future<void> _selecionarFoto(ImageSource source) async {
     try {
       // Verificar permissões
-      bool hasPermission = await _verificarPermissoes(source);
+      final bool hasPermission = await _verificarPermissoes(source);
       if (!hasPermission) {
         _mostrarErroPermissao(source);
         return;
@@ -248,7 +266,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       // Mostrar loading
       if (mounted) {
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (context) => const Center(
@@ -328,7 +346,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   void _mostrarErroPermissao(ImageSource source) {
     final String tipo = source == ImageSource.camera ? 'câmera' : 'galeria';
     
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Permissão Necessária'),
@@ -356,7 +374,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
     try {
       // Mostrar loading
       if (mounted) {
-        showDialog(
+        showDialog<void>(
           context: context,
           barrierDismissible: false,
           builder: (context) => const Center(
@@ -422,7 +440,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
       try {
         // Mostrar loading
         if (mounted) {
-          showDialog(
+          showDialog<void>(
             context: context,
             barrierDismissible: false,
             builder: (context) => const Center(
@@ -480,6 +498,54 @@ class _PerfilScreenState extends State<PerfilScreen> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sair da Conta'),
+        content: const Text(
+          'Tem certeza que deseja sair da sua conta?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.indigo),
+            child: const Text('Sair'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      try {
+        // Fazer logout
+        await AuthService.signOut();
+
+        if (!mounted) return;
+
+        // Navegar para a tela de login
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
+          (route) => false,
+        );
+      } catch (e) {
+        if (!mounted) return;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao fazer logout: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -556,7 +622,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         children: [
                           // Avatar com foto ou fallback para AppIcon
                           Semantics(
-                            label: "Foto do perfil",
+                            label: 'Foto do perfil',
                             image: true,
                             child: Stack(
                               children: [
@@ -571,7 +637,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                                   bottom: 0,
                                   right: 0,
                                   child: Semantics(
-                                    label: "Alterar foto do perfil",
+                                    label: 'Alterar foto do perfil',
                                     button: true,
                                     child: GestureDetector(
                                       onTap: _mostrarOpcoesFoto,
@@ -663,7 +729,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           subtitle: const Text('Versão 1.0.0'),
                           trailing: const Icon(Icons.arrow_forward_ios),
                           onTap: () {
-                            showDialog(
+                            showDialog<void>(
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Sobre o ProvaPlanner'),
@@ -702,6 +768,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
                   Card(
                     child: Column(
                       children: [
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: AppTheme.indigo),
+                          title: const Text('Sair da Conta'),
+                          subtitle: const Text('Fazer logout da sua conta'),
+                          onTap: _handleLogout,
+                        ),
+                        const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.delete_forever, color: Colors.red),
                           title: const Text(

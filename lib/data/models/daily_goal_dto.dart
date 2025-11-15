@@ -17,12 +17,12 @@ class DailyGoalDto {
 
   factory DailyGoalDto.fromJson(Map<String, dynamic> json) {
     return DailyGoalDto(
-      id: json['id'],
-      titulo: json['titulo'],
-      descricao: json['descricao'],
-      data: json['data'],
-      concluida: json['concluida'] ?? false,
-      prioridade: json['prioridade'] ?? 'media',
+      id: json['id'] as String,
+      titulo: json['titulo'] as String,
+      descricao: json['descricao'] as String,
+      data: json['data'] as String,
+      concluida: (json['concluida'] as bool?) ?? false,
+      prioridade: (json['prioridade'] as String?) ?? 'media',
     );
   }
 

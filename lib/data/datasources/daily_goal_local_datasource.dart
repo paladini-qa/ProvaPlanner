@@ -20,9 +20,9 @@ class DailyGoalLocalDataSourceImpl implements DailyGoalLocalDataSource {
     }
 
     try {
-      final List<dynamic> goalsJson = jsonDecode(goalsString);
+      final List<dynamic> goalsJson = jsonDecode(goalsString) as List<dynamic>;
       return goalsJson
-          .map((json) => DailyGoalDto.fromJson(json))
+          .map((json) => DailyGoalDto.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
       return [];

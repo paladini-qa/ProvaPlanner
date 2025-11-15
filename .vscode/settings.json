@@ -33,5 +33,46 @@
       "name": "teste",
       "username": "vitor.paladini"
     }
-  ]
+  ],
+  // Configurações do Dart/Flutter para verificação automática de lint
+  "dart.enableSdkFormatter": true,
+  "dart.lineLength": 80,
+  "dart.showTodos": true,
+  "dart.analysisExcludedFolders": [
+    "build",
+    ".dart_tool"
+  ],
+  // Verificação automática de problemas
+  "dart.analysisServerFolding": true,
+  "dart.previewFlutterUiGuides": true,
+  "dart.previewFlutterUiGuidesCustomTracking": true,
+  // Verificação de lint em tempo real
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  // Mostrar problemas do Dart/Flutter
+  "dart.showMainCodeLens": true,
+  "dart.showTestCodeLens": true,
+  // Verificação automática ao salvar
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.rulers": [80],
+    "editor.selectionHighlight": false,
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.suggestSelection": "first",
+    "editor.tabCompletion": "onlySnippets",
+    "editor.wordBasedSuggestions": "off"
+  },
+  // Verificação de problemas em todos os arquivos
+  "files.associations": {
+    "*.dart": "dart"
+  },
+  // Mostrar avisos e erros
+  "problems.showCurrentInStatus": true,
+  "problems.decorations.enabled": true
 }

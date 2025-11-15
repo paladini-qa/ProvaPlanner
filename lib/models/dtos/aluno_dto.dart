@@ -15,11 +15,11 @@ class AlunoDto {
 
   factory AlunoDto.fromJson(Map<String, dynamic> json) {
     return AlunoDto(
-      id: json['id'],
-      nome: json['nome'],
-      matricula: json['matricula'],
-      email: json['email'],
-      dataCriacao: json['dataCriacao'],
+      id: json['id'] as String,
+      nome: json['nome'] as String,
+      matricula: json['matricula'] as String,
+      email: json['email'] as String,
+      dataCriacao: json['dataCriacao'] as String,
     );
   }
 

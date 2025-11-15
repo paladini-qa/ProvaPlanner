@@ -78,26 +78,118 @@ A integração com Supabase fornece:
 - ✅ **Sincronização bidirecional**: Dados do servidor são sincronizados com o armazenamento local
 - ✅ **Operações CRUD completas**: Criar, ler, atualizar e deletar metas diárias
 
-## 6. Autenticação (Opcional)
+## 6. Configurar Autenticação e Perfis de Usuário
 
-Para implementar autenticação de usuários:
+### 6.1. Habilitar Autenticação por Email (Sem Confirmação)
 
-1. Configure autenticação no Supabase (Email, OAuth, etc.)
-2. Atualize as políticas RLS para usar `auth.uid()`
-3. Adicione coluna `user_id` na tabela para associar dados ao usuário
+1. No dashboard do Supabase, vá em **Authentication** > **Providers**
+2. Certifique-se de que **Email** está habilitado
+3. **IMPORTANTE**: Desabilite a confirmação de email:
+   - Clique em **Email** provider
+   - Desmarque a opção **"Confirm email"** ou **"Enable email confirmations"**
+   - Isso permite login imediato após registro sem precisar confirmar email
+4. Salve as alterações
 
-Exemplo de política com autenticação:
+### 6.2. Criar Tabela de Perfis
+
+Execute o seguinte SQL no SQL Editor do Supabase para criar a tabela de perfis e configurar a criação automática de perfis ao registrar:
 
 ```sql
-CREATE POLICY "Usuários podem ver apenas suas próprias metas"
-  ON daily_goals
+-- Criar tabela de perfis
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT,
+  email TEXT,
+  photo_url TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Habilitar Row Level Security (RLS)
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Política: Usuários podem ver apenas seu próprio perfil
+CREATE POLICY "Usuários podem ver apenas seu próprio perfil"
+  ON profiles
   FOR SELECT
-  USING (auth.uid()::text = user_id);
+  USING (auth.uid() = id);
+
+-- Política: Usuários podem atualizar apenas seu próprio perfil
+CREATE POLICY "Usuários podem atualizar apenas seu próprio perfil"
+  ON profiles
+  FOR UPDATE
+  USING (auth.uid() = id);
+
+-- Política: Usuários podem inserir apenas seu próprio perfil
+-- NOTA: Esta política é principalmente para backup. O trigger handle_new_user
+-- usa SECURITY DEFINER e cria o perfil automaticamente, ignorando RLS
+CREATE POLICY "Usuários podem inserir apenas seu próprio perfil"
+  ON profiles
+  FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
+-- Função para criar perfil automaticamente ao registrar
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email)
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger para executar a função ao criar novo usuário
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Criar índice para melhorar performance
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
+```
+
+**Estrutura da tabela `profiles`:**
+
+| Coluna       | Tipo      | Descrição                               |
+| ------------ | --------- | --------------------------------------- |
+| `id`         | UUID      | ID do usuário (referência a auth.users) |
+| `name`       | TEXT      | Nome do usuário                         |
+| `email`      | TEXT      | Email do usuário                        |
+| `photo_url`  | TEXT      | URL da foto de perfil (opcional)        |
+| `created_at` | TIMESTAMP | Data de criação                         |
+| `updated_at` | TIMESTAMP | Data da última atualização              |
+
+### 6.3. Atualizar Tabelas Existentes para Usar Autenticação
+
+Para associar dados existentes aos usuários, adicione a coluna `user_id`:
+
+```sql
+-- Adicionar coluna user_id na tabela daily_goals
+ALTER TABLE daily_goals
+ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- Atualizar políticas para usar user_id
+DROP POLICY IF EXISTS "Permitir acesso completo para usuários autenticados" ON daily_goals;
+
+CREATE POLICY "Usuários podem ver apenas suas próprias metas"
+  ON daily_goals FOR SELECT
+  USING ((auth.uid())::uuid = user_id);
 
 CREATE POLICY "Usuários podem criar apenas suas próprias metas"
-  ON daily_goals
-  FOR INSERT
-  WITH CHECK (auth.uid()::text = user_id);
+  ON daily_goals FOR INSERT
+  WITH CHECK ((auth.uid())::uuid = user_id);
+
+CREATE POLICY "Usuários podem atualizar apenas suas próprias metas"
+  ON daily_goals FOR UPDATE
+  USING ((auth.uid())::uuid = user_id);
+
+CREATE POLICY "Usuários podem deletar apenas suas próprias metas"
+  ON daily_goals FOR DELETE
+  USING ((auth.uid())::uuid = user_id);
 ```
 
 ## 7. Troubleshooting
@@ -119,3 +211,31 @@ CREATE POLICY "Usuários podem criar apenas suas próprias metas"
 - Verifique a conexão com a internet
 - Verifique os logs do Supabase no dashboard
 - A aplicação continuará funcionando localmente mesmo sem sincronização
+
+### Erro: "new row violates row-level security policy for table profiles"
+
+Este erro ocorre quando o código tenta criar o perfil manualmente. A solução é:
+
+1. **Certifique-se de que o trigger foi criado**: O trigger `on_auth_user_created` cria o perfil automaticamente usando `SECURITY DEFINER`, que ignora RLS
+2. **Verifique se a função existe**: Execute no SQL Editor:
+   ```sql
+   SELECT * FROM pg_proc WHERE proname = 'handle_new_user';
+   ```
+3. **Verifique se o trigger está ativo**: Execute no SQL Editor:
+   ```sql
+   SELECT * FROM pg_trigger WHERE tgname = 'on_auth_user_created';
+   ```
+4. **O código do app não precisa criar manualmente**: O trigger faz isso automaticamente. O código apenas atualiza o nome se fornecido
+
+**Nota**: O código do app foi ajustado para não tentar criar o perfil manualmente, apenas atualizar o nome após o trigger criar o perfil automaticamente.
+
+### Erro: "email not confirmed" ou "Por favor, confirme seu email"
+
+Este erro ocorre quando a confirmação de email está habilitada no Supabase. Para desabilitar:
+
+1. No dashboard do Supabase, vá em **Authentication** > **Providers**
+2. Clique em **Email**
+3. Desmarque a opção **"Confirm email"** ou **"Enable email confirmations"**
+4. Salve as alterações
+
+**Importante**: Com a confirmação desabilitada, os usuários podem fazer login imediatamente após o registro, sem precisar confirmar o email.

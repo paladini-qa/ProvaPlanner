@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'disciplinas_screen.dart';
-import 'daily_goals_screen.dart';
-import 'perfil_screen.dart';
-import '../widgets/bottom_navigation.dart';
-import '../widgets/tutorial_overlay.dart';
-import '../widgets/tutorial_arrow.dart';
+
 import '../services/tutorial_service.dart';
+import '../widgets/bottom_navigation.dart';
+import '../widgets/tutorial_arrow.dart';
+import '../widgets/tutorial_overlay.dart';
+import 'daily_goals_screen.dart';
+import 'disciplinas_screen.dart';
+import 'home_screen.dart';
+import 'perfil_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -36,17 +37,17 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _verificarTutorialInicial() async {
     // Aguardar um pouco para garantir que as telas estão carregadas
-    await Future.delayed(const Duration(milliseconds: 1500));
-    
+    await Future<void>.delayed(const Duration(milliseconds: 1500));
+
     if (!mounted) return;
-    
+
     final step = await TutorialService.getCurrentStep();
     final completed = await TutorialService.isTutorialCompleted();
-    
+
     // Se o tutorial não foi concluído e o passo é none, iniciar
     if (!completed && step == TutorialStep.none) {
       await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
-      
+
       if (mounted) {
         setState(() {
           _showTutorialNav = true;
@@ -54,7 +55,7 @@ class _MainScreenState extends State<MainScreen> {
       }
       return;
     }
-    
+
     // Passo 0: Mostrar tutorial na navegação
     if (step == TutorialStep.navigateToDisciplinas) {
       if (mounted) {
@@ -78,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _showTutorialNav = false;
     });
-    
+
     // Após clicar na navegação, avançar para próximo passo
     final newStep = await TutorialService.getCurrentStep();
     if (newStep == TutorialStep.addDisciplina) {
@@ -99,7 +100,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _currentIndex = index;
     });
-    
+
     // Se estava no tutorial de navegação e clicou em disciplinas
     if (_showTutorialNav && index == 1) {
       _proximoPassoTutorial();
@@ -111,12 +112,12 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _verificarTutorialAposNavegacao() async {
     // Aguardar um pouco para a tela renderizar
-    await Future.delayed(const Duration(milliseconds: 500));
-    
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
     if (!mounted) return;
-    
+
     final step = await TutorialService.getCurrentStep();
-    
+
     // Se está na tela de disciplinas e o passo é addDisciplina
     if (_currentIndex == 1 && step == TutorialStep.addDisciplina) {
       // A tela de disciplinas vai mostrar o tutorial automaticamente
@@ -132,20 +133,20 @@ class _MainScreenState extends State<MainScreen> {
       });
     }
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Verificar tutorial periodicamente
     _verificarTutorialPeriodicamente();
   }
-  
+
   Future<void> _verificarTutorialPeriodicamente() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
-    
+
     final step = await TutorialService.getCurrentStep();
-    
+
     // Se o passo mudou para addProva e não está na home, navegar
     if (step == TutorialStep.addProva && _currentIndex != 0) {
       setState(() {
@@ -174,7 +175,8 @@ class _MainScreenState extends State<MainScreen> {
         if (_showTutorialNav)
           TutorialOverlay(
             title: '👋 Bem-vindo!',
-            message: 'Vamos começar! Toque no ícone "Disciplinas" na barra de navegação abaixo para começar a organizar seus estudos.',
+            message:
+                'Vamos começar! Toque no ícone "Disciplinas" na barra de navegação abaixo para começar a organizar seus estudos.',
             targetKey: _disciplinasNavKey,
             arrowPosition: ArrowPosition.top,
             onNext: _proximoPassoTutorial,

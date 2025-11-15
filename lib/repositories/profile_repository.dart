@@ -18,6 +18,7 @@ class ProfileRepository {
       } else {
         // Para mobile, retornar o arquivo
         final file = File(photoPath);
+        // ignore: avoid_slow_async_io
         if (await file.exists()) {
           return file;
         } else {

@@ -22,8 +22,8 @@ class ProvaService {
     }
     
     try {
-      final List<dynamic> provasJson = jsonDecode(provasString);
-      return provasJson.map((json) => Prova.fromJson(json)).toList();
+      final List<dynamic> provasJson = jsonDecode(provasString) as List<dynamic>;
+      return provasJson.map((json) => Prova.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       return [];
     }

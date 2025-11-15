@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/disciplina.dart';
 import '../models/prova.dart';
 import '../services/prova_service.dart';
@@ -10,7 +11,8 @@ class DetalhesDisciplinaScreen extends StatefulWidget {
   const DetalhesDisciplinaScreen({super.key, required this.disciplina});
 
   @override
-  State<DetalhesDisciplinaScreen> createState() => _DetalhesDisciplinaScreenState();
+  State<DetalhesDisciplinaScreen> createState() =>
+      _DetalhesDisciplinaScreenState();
 }
 
 class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
@@ -25,15 +27,15 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
 
   Future<void> _carregarProvas() async {
     setState(() => _isLoading = true);
-    
+
     final todasProvas = await ProvaService.carregarProvas();
     final provasDisciplina = todasProvas
         .where((prova) => prova.disciplinaId == widget.disciplina.id)
         .toList();
-    
+
     // Ordenar por data
     provasDisciplina.sort((a, b) => a.dataProva.compareTo(b.dataProva));
-    
+
     setState(() {
       _provas = provasDisciplina;
       _isLoading = false;
@@ -65,7 +67,8 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                           Row(
                             children: [
                               CircleAvatar(
-                                backgroundColor: widget.disciplina.cor.withValues(alpha: 0.1),
+                                backgroundColor: widget.disciplina.cor
+                                    .withValues(alpha: 0.1),
                                 child: Icon(
                                   Icons.school,
                                   color: widget.disciplina.cor,
@@ -78,36 +81,46 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                                   children: [
                                     Text(
                                       widget.disciplina.nome,
-                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       'Professor: ${widget.disciplina.professor}',
-                                      style: Theme.of(context).textTheme.bodyLarge,
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
                                     ),
                                     Text(
                                       'Período: ${widget.disciplina.periodo}',
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Colors.grey[600],
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Colors.grey[600],
+                                          ),
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          
+
                           if (widget.disciplina.descricao.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             const Divider(),
                             const SizedBox(height: 16),
                             Text(
                               'Descrição',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -115,11 +128,11 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
-                          
+
                           const SizedBox(height: 16),
                           const Divider(),
                           const SizedBox(height: 16),
-                          
+
                           // Estatísticas
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -131,12 +144,20 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                               ),
                               _buildStatCard(
                                 'Provas Concluídas',
-                                _provas.where((p) => p.dataProva.isBefore(DateTime.now())).length.toString(),
+                                _provas
+                                    .where((p) =>
+                                        p.dataProva.isBefore(DateTime.now()))
+                                    .length
+                                    .toString(),
                                 Icons.check_circle,
                               ),
                               _buildStatCard(
                                 'Próximas Provas',
-                                _provas.where((p) => p.dataProva.isAfter(DateTime.now())).length.toString(),
+                                _provas
+                                    .where((p) =>
+                                        p.dataProva.isAfter(DateTime.now()))
+                                    .length
+                                    .toString(),
                                 Icons.schedule,
                               ),
                             ],
@@ -145,19 +166,19 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Histórico de provas
                   Text(
                     'Histórico de Provas',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   if (_provas.isEmpty)
                     _buildEmptyProvas()
                   else
@@ -180,15 +201,15 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
         Text(
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: widget.disciplina.cor,
-            fontWeight: FontWeight.bold,
-          ),
+                color: widget.disciplina.cor,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         Text(
           title,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey[600],
-          ),
+                color: Colors.grey[600],
+              ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -210,15 +231,15 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
             Text(
               'Nenhuma prova cadastrada',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 8),
             Text(
               'As provas desta disciplina aparecerão aqui',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[500],
-              ),
+                    color: Colors.grey[500],
+                  ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -231,27 +252,27 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
     return Column(
       children: _provas.map((prova) {
         final isConcluida = prova.dataProva.isBefore(DateTime.now());
-        final isProxima = prova.dataProva.isAfter(DateTime.now()) && 
-                         prova.dataProva.difference(DateTime.now()).inDays <= 7;
-        
+        final isProxima = prova.dataProva.isAfter(DateTime.now()) &&
+            prova.dataProva.difference(DateTime.now()).inDays <= 7;
+
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: isConcluida 
+              backgroundColor: isConcluida
                   ? Colors.green.withValues(alpha: 0.1)
-                  : isProxima 
+                  : isProxima
                       ? Colors.orange.withValues(alpha: 0.1)
                       : widget.disciplina.cor.withValues(alpha: 0.1),
               child: Icon(
-                isConcluida 
+                isConcluida
                     ? Icons.check_circle
-                    : isProxima 
+                    : isProxima
                         ? Icons.schedule
                         : Icons.quiz,
-                color: isConcluida 
+                color: isConcluida
                     ? Colors.green
-                    : isProxima 
+                    : isProxima
                         ? Colors.orange
                         : widget.disciplina.cor,
               ),
@@ -318,7 +339,7 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
   }
 
   void _mostrarDetalhesProva(Prova prova) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(prova.nome),
@@ -326,7 +347,8 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Data: ${DateFormat('dd/MM/yyyy - HH:mm').format(prova.dataProva)}'),
+            Text(
+                'Data: ${DateFormat('dd/MM/yyyy - HH:mm').format(prova.dataProva)}'),
             const SizedBox(height: 8),
             if (prova.descricao.isNotEmpty) ...[
               Text('Descrição: ${prova.descricao}'),
@@ -338,14 +360,16 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
             ),
             const SizedBox(height: 8),
             ...prova.revisoes.map((revisao) => ListTile(
-              leading: Icon(
-                revisao.concluida ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: revisao.concluida ? Colors.green : Colors.grey,
-              ),
-              title: Text(revisao.descricao),
-              subtitle: Text(DateFormat('dd/MM/yyyy').format(revisao.data)),
-              dense: true,
-            )),
+                  leading: Icon(
+                    revisao.concluida
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: revisao.concluida ? Colors.green : Colors.grey,
+                  ),
+                  title: Text(revisao.descricao),
+                  subtitle: Text(DateFormat('dd/MM/yyyy').format(revisao.data)),
+                  dense: true,
+                )),
           ],
         ),
         actions: [

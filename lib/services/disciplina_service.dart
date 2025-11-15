@@ -21,8 +21,8 @@ class DisciplinaService {
       return [];
     }
     
-    final List<dynamic> disciplinasJson = jsonDecode(disciplinasString);
-    return disciplinasJson.map((json) => Disciplina.fromJson(json)).toList();
+    final List<dynamic> disciplinasJson = jsonDecode(disciplinasString) as List<dynamic>;
+    return disciplinasJson.map((json) => Disciplina.fromJson(json as Map<String, dynamic>)).toList();
   }
 
   // Adicionar disciplina

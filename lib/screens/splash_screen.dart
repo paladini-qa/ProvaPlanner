@@ -3,6 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_icon.dart';
 import '../theme/app_theme.dart';
 import '../services/tutorial_service.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -51,10 +53,30 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _navigateToNextScreen() async {
     // Simular tempo de carregamento
-    await Future.delayed(const Duration(milliseconds: 3000));
+    await Future<void>.delayed(const Duration(milliseconds: 3000));
 
     if (!mounted) return;
 
+    // Verificar autenticação primeiro
+    bool isAuthenticated = false;
+    try {
+      isAuthenticated = AuthService.isAuthenticated;
+    } catch (e) {
+      // Se Supabase não estiver configurado, continuar sem autenticação
+      isAuthenticated = false;
+    }
+
+    // Se não estiver autenticado, ir para login
+    if (!isAuthenticated) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(builder: (context) => const LoginScreen()),
+      );
+      return;
+    }
+
+    // Se estiver autenticado, seguir o fluxo normal
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
     final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;

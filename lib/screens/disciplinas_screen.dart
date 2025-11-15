@@ -57,7 +57,7 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
     final step = await TutorialService.getCurrentStep();
     if (step == TutorialStep.addDisciplina) {
       // Aguardar um pouco para garantir que a UI está renderizada
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
       if (mounted && !_showTutorial) {
         setState(() {
           _showTutorial = true;
@@ -333,7 +333,7 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
+                MaterialPageRoute<void>(
                   builder: (context) => DetalhesDisciplinaScreen(disciplina: disciplina),
                 ),
               );

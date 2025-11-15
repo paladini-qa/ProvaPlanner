@@ -4,7 +4,7 @@ import '../models/prova.dart';
 
 class RevisaoCard extends StatelessWidget {
   final Revisao revisao;
-  final Function(bool) onToggle;
+  final void Function(bool) onToggle;
 
   const RevisaoCard({
     super.key,

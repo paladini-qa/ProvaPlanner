@@ -287,7 +287,7 @@ Você pode exercer seus direitos entrando em contato conosco.
   }
 
   void _showDetailedPolicies() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Políticas Completas'),

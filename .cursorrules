@@ -78,3 +78,51 @@ import 'package:prova_planner/data/models/aluno_dto.dart';  // CORRETO - sem /li
 - Import correto: `package:prova_planner/models/aluno.dart`
 - Import errado: `package:prova_planner/lib/models/aluno.dart`
 
+## Verificação de Lint e Problemas
+
+### Regras Obrigatórias
+
+**SEMPRE verifique e corrija erros de lint ao fazer alterações:**
+1. **Antes de finalizar qualquer alteração**, execute verificação de lint nos arquivos modificados
+2. **Corrija todos os avisos de lint** antes de considerar a tarefa completa
+3. **Use `const` sempre que possível** para melhorar performance:
+   - `const Text()` em vez de `Text()`
+   - `const TextStyle()` em vez de `TextStyle()`
+   - `const []` para listas imutáveis
+   - `const {}` para sets imutáveis
+4. **Prefira `final` sobre `var`** para variáveis que não serão reatribuídas
+5. **Organize imports** automaticamente ao salvar
+
+### Regras de Lint Prioritárias
+
+Sempre verifique e corrija:
+- `prefer_const_constructors` - Use const em construtores
+- `prefer_const_literals_to_create_immutables` - Use const em literais imutáveis
+- `prefer_final_fields` - Use final em campos
+- `prefer_final_locals` - Use final em variáveis locais
+- `avoid_print` - Não use print(), use debugPrint() ou logging apropriado
+- `use_build_context_synchronously` - Não use BuildContext após operações assíncronas
+- `sized_box_for_whitespace` - Use SizedBox em vez de Container vazio
+- `use_key_in_widget_constructors` - Adicione keys quando necessário
+
+### Processo de Verificação
+
+Ao fazer alterações:
+1. **Durante a edição**: O Cursor verifica automaticamente em tempo real
+2. **Ao salvar**: Correções automáticas são aplicadas (format, organize imports, fix all)
+3. **Antes de finalizar**: Execute `read_lints` nos arquivos modificados
+4. **Se houver erros**: Corrija todos antes de considerar completo
+
+### Comandos Úteis
+
+- Use `read_lints` para verificar erros de lint
+- Use `flutter analyze` para análise completa do projeto
+- Use `dart format .` para formatar todo o código
+
+### Exceções
+
+Apenas ignore regras de lint se:
+- For explicitamente necessário para funcionalidade específica
+- Adicione comentário explicando o motivo: `// ignore: nome_da_regra`
+- Prefira `// ignore_for_file` apenas quando realmente necessário para todo o arquivo
+

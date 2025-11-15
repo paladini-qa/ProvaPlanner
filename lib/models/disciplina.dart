@@ -33,13 +33,13 @@ class Disciplina {
 
   factory Disciplina.fromJson(Map<String, dynamic> json) {
     return Disciplina(
-      id: json['id'],
-      nome: json['nome'],
-      professor: json['professor'],
-      periodo: json['periodo'],
-      descricao: json['descricao'] ?? '',
-      cor: Color(json['cor']),
-      dataCriacao: DateTime.parse(json['dataCriacao']),
+      id: json['id'] as String,
+      nome: json['nome'] as String,
+      professor: json['professor'] as String,
+      periodo: json['periodo'] as String,
+      descricao: (json['descricao'] as String?) ?? '',
+      cor: Color(json['cor'] as int),
+      dataCriacao: DateTime.parse(json['dataCriacao'] as String),
     );
   }
 

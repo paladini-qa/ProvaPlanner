@@ -11,11 +11,13 @@ class LocalPhotoStore {
   static Future<String> savePhoto(File imageFile) async {
     try {
       // Verificar se o arquivo existe
+      // ignore: avoid_slow_async_io
       if (!await imageFile.exists()) {
         throw Exception('Arquivo de imagem não encontrado');
       }
 
       // Verificar tamanho do arquivo original (máximo 10MB)
+      // ignore: avoid_slow_async_io
       final fileSize = await imageFile.length();
       if (fileSize > 10 * 1024 * 1024) {
         throw Exception('Imagem muito grande. Máximo permitido: 10MB');
@@ -41,6 +43,7 @@ class LocalPhotoStore {
       }
 
       // Verificar tamanho do arquivo comprimido
+      // ignore: avoid_slow_async_io
       final compressedSize = await compressedFile.length();
       if (compressedSize > _maxFileSizeBytes) {
         // Tentar compressão mais agressiva
@@ -58,6 +61,7 @@ class LocalPhotoStore {
           throw Exception('Falha ao comprimir a imagem para o tamanho desejado');
         }
 
+        // ignore: avoid_slow_async_io
         final finalSize = await moreCompressedFile.length();
         if (finalSize > _maxFileSizeBytes) {
           throw Exception('Imagem muito grande mesmo após compressão');
@@ -79,6 +83,7 @@ class LocalPhotoStore {
       final avatarPath = '${appDir.path}/$_avatarFileName';
       final file = File(avatarPath);
 
+      // ignore: avoid_slow_async_io
       if (await file.exists()) {
         return avatarPath;
       }
@@ -95,7 +100,9 @@ class LocalPhotoStore {
       final avatarPath = '${appDir.path}/$_avatarFileName';
       final file = File(avatarPath);
 
+      // ignore: avoid_slow_async_io
       if (await file.exists()) {
+        // ignore: avoid_slow_async_io
         await file.delete();
       }
     } catch (e) {
@@ -110,6 +117,7 @@ class LocalPhotoStore {
       if (path == null) return false;
 
       final file = File(path);
+      // ignore: avoid_slow_async_io
       return await file.exists();
     } catch (e) {
       return false;
@@ -123,8 +131,10 @@ class LocalPhotoStore {
       if (path == null) return null;
 
       final file = File(path);
+      // ignore: avoid_slow_async_io
       if (!await file.exists()) return null;
 
+      // ignore: avoid_slow_async_io
       final fileSize = await file.length();
       return {
         'path': path,

@@ -15,10 +15,12 @@ class MobilePhotoService implements PhotoService {
     }
     
     try {
+      // ignore: avoid_slow_async_io
       if (!await imageFile.exists()) {
         throw Exception('Arquivo de imagem não encontrado');
       }
 
+      // ignore: avoid_slow_async_io
       final fileSize = await imageFile.length();
       if (fileSize > 10 * 1024 * 1024) {
         throw Exception('Imagem muito grande. Máximo permitido: 10MB');
@@ -41,6 +43,7 @@ class MobilePhotoService implements PhotoService {
         throw Exception('Falha ao comprimir a imagem');
       }
 
+      // ignore: avoid_slow_async_io
       final compressedSize = await compressedFile.length();
       if (compressedSize > _maxFileSizeBytes) {
         final moreCompressedFile = await FlutterImageCompress.compressAndGetFile(
@@ -73,6 +76,7 @@ class MobilePhotoService implements PhotoService {
       final avatarPath = '${appDir.path}/$_avatarFileName';
       final file = File(avatarPath);
 
+      // ignore: avoid_slow_async_io
       if (await file.exists()) {
         return avatarPath;
       }
@@ -89,7 +93,9 @@ class MobilePhotoService implements PhotoService {
       final avatarPath = '${appDir.path}/$_avatarFileName';
       final file = File(avatarPath);
 
+      // ignore: avoid_slow_async_io
       if (await file.exists()) {
+        // ignore: avoid_slow_async_io
         await file.delete();
       }
     } catch (e) {
@@ -104,6 +110,7 @@ class MobilePhotoService implements PhotoService {
       if (path == null) return false;
 
       final file = File(path);
+      // ignore: avoid_slow_async_io
       return await file.exists();
     } catch (e) {
       return false;
@@ -117,8 +124,10 @@ class MobilePhotoService implements PhotoService {
       if (path == null) return null;
 
       final file = File(path);
+      // ignore: avoid_slow_async_io
       if (!await file.exists()) return null;
 
+      // ignore: avoid_slow_async_io
       final fileSize = await file.length();
       return {
         'path': path,

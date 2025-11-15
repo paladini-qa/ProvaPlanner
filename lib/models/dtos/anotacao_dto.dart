@@ -13,10 +13,10 @@ class AnotacaoDto {
 
   factory AnotacaoDto.fromJson(Map<String, dynamic> json) {
     return AnotacaoDto(
-      id: json['id'],
-      titulo: json['titulo'],
-      descricao: json['descricao'],
-      dataCriacao: json['dataCriacao'],
+      id: json['id'] as String,
+      titulo: json['titulo'] as String,
+      descricao: json['descricao'] as String,
+      dataCriacao: json['dataCriacao'] as String,
     );
   }
 

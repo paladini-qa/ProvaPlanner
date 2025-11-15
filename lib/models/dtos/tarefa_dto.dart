@@ -17,12 +17,12 @@ class TarefaDto {
 
   factory TarefaDto.fromJson(Map<String, dynamic> json) {
     return TarefaDto(
-      id: json['id'],
-      titulo: json['titulo'],
-      descricao: json['descricao'],
-      concluida: json['concluida'],
-      dataCriacao: json['dataCriacao'],
-      dataConclusao: json['dataConclusao'],
+      id: json['id'] as String,
+      titulo: json['titulo'] as String,
+      descricao: json['descricao'] as String,
+      concluida: (json['concluida'] as bool?) ?? false,
+      dataCriacao: json['dataCriacao'] as String,
+      dataConclusao: json['dataConclusao'] as String,
     );
   }
 
