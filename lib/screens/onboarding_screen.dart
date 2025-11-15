@@ -12,7 +12,10 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  final ScrollController _termsScrollController = ScrollController();
   int _currentPage = 0;
+  bool _hasScrolledToEnd = false;
+  bool _acceptedTerms = false;
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
@@ -42,19 +45,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _termsScrollController.addListener(_checkScrollPosition);
+  }
+
+  void _checkScrollPosition() {
+    if (_termsScrollController.hasClients) {
+      final maxScroll = _termsScrollController.position.maxScrollExtent;
+      final currentScroll = _termsScrollController.position.pixels;
+      final threshold = maxScroll - 50; // 50px de margem
+
+      if (currentScroll >= threshold && !_hasScrolledToEnd) {
+        setState(() {
+          _hasScrolledToEnd = true;
+        });
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
+    _termsScrollController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage < _pages.length) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    } else {
-      _completeOnboarding();
     }
   }
 
@@ -68,19 +90,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_seen_onboarding', true);
+    if (!_acceptedTerms || !_hasScrolledToEnd) return;
     
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/policies');
-    }
-  }
-
-  Future<void> _aceitarTudo() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_onboarding', true);
     await prefs.setBool('has_accepted_policies', true);
-    await prefs.setBool('notifications_enabled', true);
     
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/profile-setup');
@@ -137,50 +151,53 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildFinalButtons() {
+    final canProceed = _acceptedTerms && _hasScrolledToEnd;
+    
     return Column(
       children: [
-        // Botão "Aceitar Tudo"
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: _aceitarTudo,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.indigo,
-              side: const BorderSide(color: AppTheme.indigo),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 16,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        // Checkbox de aceite
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          decoration: BoxDecoration(
+            color: canProceed 
+                ? AppTheme.indigo.withValues(alpha: 0.05)
+                : Colors.grey.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: canProceed 
+                  ? AppTheme.indigo.withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.3),
+            ),
+          ),
+          child: CheckboxListTile(
+            value: _acceptedTerms,
+            onChanged: (value) {
+              setState(() {
+                _acceptedTerms = value ?? false;
+              });
+            },
+            title: const Text(
+              'Li e aceito os Termos de Uso e Política de Privacidade',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.check_circle, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Aceitar Tudo e Continuar',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+            activeColor: AppTheme.indigo,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
           ),
         ),
         
         const SizedBox(height: 16),
         
-        // Botão "Começar" (navegação normal)
+        // Botão "Começar"
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _nextPage,
+            onPressed: canProceed ? _completeOnboarding : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.indigo,
+              backgroundColor: canProceed ? AppTheme.indigo : Colors.grey,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
@@ -200,17 +217,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
         ),
         
-        const SizedBox(height: 8),
-        
-        // Texto explicativo
-        Text(
-          'Ou continue para aceitar as políticas',
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
+        if (!_hasScrolledToEnd)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Por favor, role até o final dos termos',
+              style: TextStyle(
+                color: Colors.orange[700],
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
       ],
     );
   }
@@ -248,10 +266,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPageChanged: (index) {
                   setState(() {
                     _currentPage = index;
+                    // Resetar scroll quando mudar de página
+                    if (index == _pages.length) {
+                      _hasScrolledToEnd = false;
+                      _acceptedTerms = false;
+                    }
                   });
                 },
-                itemCount: _pages.length,
+                itemCount: _pages.length + 1, // +1 para página de termos
                 itemBuilder: (context, index) {
+                  if (index == _pages.length) {
+                    return _buildTermsPage();
+                  }
                   return _buildOnboardingPage(_pages[index]);
                 },
               ),
@@ -263,7 +289,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  _pages.length,
+                  _pages.length + 1, // +1 para página de termos
                   (index) => Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     width: _currentPage == index ? 24 : 8,
@@ -282,7 +308,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Botões de navegação
             Padding(
               padding: const EdgeInsets.all(24.0),
-              child: _currentPage == _pages.length - 1 
+              child: _currentPage == _pages.length 
                   ? _buildFinalButtons()
                   : _buildNavigationButtons(),
             ),
@@ -337,6 +363,156 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 1.5,
             ),
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTermsPage() {
+    return SingleChildScrollView(
+      controller: _termsScrollController,
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppTheme.indigo.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.security,
+                    size: 40,
+                    color: AppTheme.indigo,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Termos e Políticas',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    color: AppTheme.slate,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Por favor, leia e aceite os termos para continuar',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.slateLight,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Política de Privacidade
+          _buildPolicySection(
+            title: 'Política de Privacidade',
+            content: '''
+O ProvaPlanner coleta e processa seus dados pessoais de forma transparente e segura:
+
+• Dados de provas e estudos (nome, data, disciplina)
+• Preferências de notificação
+• Dados de uso para melhorar o aplicativo
+
+Seus dados são armazenados localmente no seu dispositivo e não são compartilhados com terceiros sem seu consentimento explícito.
+            ''',
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Termos de Uso
+          _buildPolicySection(
+            title: 'Termos de Uso',
+            content: '''
+Ao usar o ProvaPlanner, você concorda com:
+
+• Uso responsável do aplicativo
+• Não compartilhamento de conteúdo inadequado
+• Respeito aos direitos de propriedade intelectual
+• Manutenção da segurança da sua conta
+
+O aplicativo é fornecido "como está" e nos reservamos o direito de atualizar estes termos.
+            ''',
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Processamento de Dados
+          _buildPolicySection(
+            title: 'Processamento de Dados (LGPD)',
+            content: '''
+Conforme a Lei Geral de Proteção de Dados (LGPD):
+
+• Base legal: Consentimento e execução de contrato
+• Finalidade: Fornecimento do serviço de organização acadêmica
+• Retenção: Dados mantidos enquanto necessário para o serviço
+• Seus direitos: Acesso, correção, exclusão e portabilidade
+
+Você pode exercer seus direitos entrando em contato conosco.
+            ''',
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Informações Adicionais
+          _buildPolicySection(
+            title: 'Informações Adicionais',
+            content: '''
+• Seus dados são armazenados apenas localmente no dispositivo
+• Não coletamos informações pessoais sensíveis
+• Você pode excluir todos os dados a qualquer momento nas configurações
+• O aplicativo funciona offline e não requer conexão com a internet para funcionalidades básicas
+• Funcionalidades de IA são opcionais e requerem configuração de chave de API
+            ''',
+          ),
+          
+          const SizedBox(height: 40), // Espaço extra no final para garantir scroll
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolicySection({
+    required String title,
+    required String content,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.indigo.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.indigo.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppTheme.indigo,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content.trim(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.slateLight,
+              height: 1.5,
+            ),
           ),
         ],
       ),
