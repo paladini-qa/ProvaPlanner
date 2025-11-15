@@ -23,4 +23,21 @@ class Env {
     }
   }
 
+  static String? get supabaseUrl {
+    if (!_loaded) return null;
+    try {
+      return dotenv.env['SUPABASE_URL'];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static String? get supabaseAnonKey {
+    if (!_loaded) return null;
+    try {
+      return dotenv.env['SUPABASE_ANON_KEY'];
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -8,6 +8,8 @@ import '../../domain/usecases/update_daily_goal.dart';
 import '../../domain/usecases/delete_daily_goal.dart';
 import '../../data/repositories/daily_goal_repository_impl.dart';
 import '../../data/datasources/daily_goal_local_datasource.dart';
+import '../../data/datasources/daily_goal_remote_datasource.dart';
+import '../../config/supabase_config.dart';
 
 /// Service wrapper para facilitar o uso dos casos de uso
 /// Mantém interface estática para compatibilidade com código existente
@@ -23,6 +25,9 @@ class DailyGoalService {
   static DailyGoalRepository get _instance {
     _repository ??= DailyGoalRepositoryImpl(
       DailyGoalLocalDataSourceImpl(),
+      remoteDataSource: SupabaseConfig.isInitialized
+          ? DailyGoalRemoteDataSourceImpl()
+          : null,
     );
     return _repository!;
   }
