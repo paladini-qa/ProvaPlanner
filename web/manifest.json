@@ -1,6 +1,6 @@
 {
-    "name": "mood_journal",
-    "short_name": "mood_journal",
+    "name": "ProvaPlanner",
+    "short_name": "ProvaPlanner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

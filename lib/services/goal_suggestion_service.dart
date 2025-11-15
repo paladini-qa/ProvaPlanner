@@ -1,5 +1,6 @@
 import '../models/prova.dart';
-import '../models/daily_goal.dart';
+import '../domain/entities/daily_goal.dart';
+import '../domain/entities/prioridade_meta.dart';
 import '../services/prova_service.dart';
 import '../config/env.dart';
 import 'ai_service.dart';

@@ -1,10 +1,4 @@
-import 'package:flutter/material.dart';
-
-enum PrioridadeMeta {
-  baixa,
-  media,
-  alta,
-}
+import 'prioridade_meta.dart';
 
 class DailyGoal {
   final String id;
@@ -39,17 +33,6 @@ class DailyGoal {
       concluida: concluida ?? this.concluida,
       prioridade: prioridade ?? this.prioridade,
     );
-  }
-
-  Color get corPrioridade {
-    switch (prioridade) {
-      case PrioridadeMeta.alta:
-        return Colors.red;
-      case PrioridadeMeta.media:
-        return Colors.orange;
-      case PrioridadeMeta.baixa:
-        return Colors.green;
-    }
   }
 
   String get prioridadeTexto {

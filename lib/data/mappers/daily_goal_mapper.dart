@@ -1,5 +1,6 @@
-import '../dtos/daily_goal_dto.dart';
-import '../daily_goal.dart';
+import '../../domain/entities/daily_goal.dart';
+import '../../domain/entities/prioridade_meta.dart';
+import '../../data/models/daily_goal_dto.dart';
 
 class DailyGoalMapper {
   static DailyGoal toEntity(DailyGoalDto dto) {

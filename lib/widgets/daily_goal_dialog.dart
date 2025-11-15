@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/daily_goal.dart';
+import '../domain/entities/daily_goal.dart';
+import '../domain/entities/prioridade_meta.dart';
+import '../presentation/extensions/daily_goal_extension.dart';
 
 class DailyGoalDialog extends StatefulWidget {
   final DailyGoal? goal;
