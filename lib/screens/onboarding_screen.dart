@@ -370,55 +370,60 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildTermsPage() {
-    return SingleChildScrollView(
-      controller: _termsScrollController,
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Center(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          controller: _termsScrollController,
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppTheme.indigo.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.security,
-                    size: 40,
-                    color: AppTheme.indigo,
+                // Header
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppTheme.indigo.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.security,
+                          size: 40,
+                          color: AppTheme.indigo,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Termos e Políticas',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: AppTheme.slate,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Por favor, leia e aceite os termos para continuar',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppTheme.slateLight,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Termos e Políticas',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppTheme.slate,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Por favor, leia e aceite os termos para continuar',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.slateLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Política de Privacidade
-          _buildPolicySection(
-            title: 'Política de Privacidade',
-            content: '''
+                
+                const SizedBox(height: 32),
+                
+                // Política de Privacidade
+                _buildPolicySection(
+                  title: 'Política de Privacidade',
+                  content: '''
 O ProvaPlanner coleta e processa seus dados pessoais de forma transparente e segura:
 
 • Dados de provas e estudos (nome, data, disciplina)
@@ -426,15 +431,15 @@ O ProvaPlanner coleta e processa seus dados pessoais de forma transparente e seg
 • Dados de uso para melhorar o aplicativo
 
 Seus dados são armazenados localmente no seu dispositivo e não são compartilhados com terceiros sem seu consentimento explícito.
-            ''',
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Termos de Uso
-          _buildPolicySection(
-            title: 'Termos de Uso',
-            content: '''
+                  ''',
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Termos de Uso
+                _buildPolicySection(
+                  title: 'Termos de Uso',
+                  content: '''
 Ao usar o ProvaPlanner, você concorda com:
 
 • Uso responsável do aplicativo
@@ -443,15 +448,15 @@ Ao usar o ProvaPlanner, você concorda com:
 • Manutenção da segurança da sua conta
 
 O aplicativo é fornecido "como está" e nos reservamos o direito de atualizar estes termos.
-            ''',
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Processamento de Dados
-          _buildPolicySection(
-            title: 'Processamento de Dados (LGPD)',
-            content: '''
+                  ''',
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Processamento de Dados
+                _buildPolicySection(
+                  title: 'Processamento de Dados (LGPD)',
+                  content: '''
 Conforme a Lei Geral de Proteção de Dados (LGPD):
 
 • Base legal: Consentimento e execução de contrato
@@ -460,26 +465,29 @@ Conforme a Lei Geral de Proteção de Dados (LGPD):
 • Seus direitos: Acesso, correção, exclusão e portabilidade
 
 Você pode exercer seus direitos entrando em contato conosco.
-            ''',
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Informações Adicionais
-          _buildPolicySection(
-            title: 'Informações Adicionais',
-            content: '''
+                  ''',
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Informações Adicionais
+                _buildPolicySection(
+                  title: 'Informações Adicionais',
+                  content: '''
 • Seus dados são armazenados apenas localmente no dispositivo
 • Não coletamos informações pessoais sensíveis
 • Você pode excluir todos os dados a qualquer momento nas configurações
 • O aplicativo funciona offline e não requer conexão com a internet para funcionalidades básicas
 • Funcionalidades de IA são opcionais e requerem configuração de chave de API
-            ''',
+                  ''',
+                ),
+                
+                const SizedBox(height: 40), // Espaço extra no final para garantir scroll
+              ],
+            ),
           ),
-          
-          const SizedBox(height: 40), // Espaço extra no final para garantir scroll
-        ],
-      ),
+        );
+      },
     );
   }
 
