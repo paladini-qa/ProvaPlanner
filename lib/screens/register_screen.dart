@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../services/auth_service.dart';
-import 'main_screen.dart';
+import 'splash_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -64,10 +64,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      // Navegar para a tela principal
+      // Navegar para splash screen que verifica se precisa fazer onboarding
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(builder: (context) => const MainScreen()),
+        MaterialPageRoute<void>(builder: (context) => const SplashScreen()),
       );
     } catch (e) {
       if (!mounted) return;

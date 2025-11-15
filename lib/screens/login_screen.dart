@@ -3,7 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
-import 'main_screen.dart';
+import 'splash_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,10 +45,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      // Navegar para a tela principal
+      // Navegar para splash screen que verifica se precisa fazer onboarding
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(builder: (context) => const MainScreen()),
+        MaterialPageRoute<void>(builder: (context) => const SplashScreen()),
       );
     } catch (e) {
       if (!mounted) return;

@@ -76,22 +76,30 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    // Se estiver autenticado, seguir o fluxo normal
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
-    final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;
-    final hasCompletedProfileSetup =
-        prefs.getBool('profile_setup_completed') ?? false;
+    // Se estiver autenticado, verificar se é primeiro login
+    bool hasCompletedOnboarding = false;
+    try {
+      hasCompletedOnboarding = await AuthService.hasCompletedOnboarding();
+    } catch (e) {
+      // Se não conseguir verificar no Supabase, usar SharedPreferences como fallback
+      final prefs = await SharedPreferences.getInstance();
+      hasCompletedOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+    }
 
-    if (!hasSeenOnboarding) {
+    // Se for primeiro login, forçar onboarding
+    if (!hasCompletedOnboarding) {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/onboarding');
-    } else if (!hasAcceptedPolicies) {
+      return;
+    }
+
+    // Se já completou onboarding, seguir o fluxo normal
+    final prefs = await SharedPreferences.getInstance();
+    final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;
+
+    if (!hasAcceptedPolicies) {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/policies');
-    } else if (!hasCompletedProfileSetup) {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/profile-setup');
     } else {
       // Iniciar tutorial se for primeira vez
       final tutorialCompleted = await TutorialService.isTutorialCompleted();

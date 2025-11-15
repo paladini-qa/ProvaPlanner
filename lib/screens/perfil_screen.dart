@@ -34,42 +34,53 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _carregarDadosUsuario() async {
     try {
-      // Tentar obter email do usuário autenticado
-      String? authEmail;
-      try {
-        authEmail = AuthService.currentUserEmail;
-      } catch (e) {
-        // Supabase não configurado ou usuário não autenticado
+      // Tentar carregar do Supabase primeiro
+      final profile = await AuthService.getProfile();
+      
+      if (profile != null) {
+        final notificationsEnabled = await ProfileRepository.getNotificationsEnabled();
+        
+        setState(() {
+          _nome = (profile['name'] as String?) ?? 'Usuário';
+          _email = (profile['email'] as String?) ?? 
+                   AuthService.currentUserEmail ?? 
+                   'usuario@exemplo.com';
+          _notificacoesHabilitadas = notificationsEnabled;
+          _isLoading = false;
+        });
+        
+        // Carregar foto do Supabase
+        final photoUrl = profile['photo_url'] as String?;
+        if (photoUrl != null && photoUrl.isNotEmpty) {
+          await _carregarFotoDoSupabase(photoUrl);
+        } else {
+          // Tentar carregar foto local como fallback
+          await _carregarFoto();
+        }
+      } else {
+        // Fallback: carregar dados locais
+        final profileData = await ProfileRepository.getProfileData();
+        
+        setState(() {
+          _nome = profileData['name'] as String;
+          _email = AuthService.currentUserEmail ?? 
+                   profileData['email'] as String;
+          _notificacoesHabilitadas = profileData['notificationsEnabled'] as bool;
+          _fotoPath = profileData['photoPath'] as String?;
+          _isLoading = false;
+        });
+        
+        await _carregarFoto();
       }
-
-      // Carregar dados usando ProfileRepository
-      final profileData = await ProfileRepository.getProfileData();
-      
-      setState(() {
-        _nome = profileData['name'] as String;
-        _email = authEmail ?? profileData['email'] as String;
-        _notificacoesHabilitadas = profileData['notificationsEnabled'] as bool;
-        _fotoPath = profileData['photoPath'] as String?;
-        _isLoading = false;
-      });
-      
-      // Carregar dados da foto
-      await _carregarFoto();
     } catch (e) {
-      // Fallback para SharedPreferences se ProfileRepository falhar
+      // Fallback final: SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      
-      // Tentar obter email do usuário autenticado
-      String? authEmail;
-      try {
-        authEmail = AuthService.currentUserEmail;
-      } catch (e) {
-        // Supabase não configurado ou usuário não autenticado
-      }
       
       setState(() {
         _nome = prefs.getString('nome_usuario') ?? 'Usuário';
-        _email = authEmail ?? prefs.getString('email_usuario') ?? 'usuario@exemplo.com';
+        _email = AuthService.currentUserEmail ?? 
+                 prefs.getString('email_usuario') ?? 
+                 'usuario@exemplo.com';
         _notificacoesHabilitadas = prefs.getBool('notifications_enabled') ?? true;
         _fotoPath = null;
         _isLoading = false;
@@ -77,17 +88,53 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  Future<void> _carregarFotoDoSupabase(String photoUrl) async {
+    try {
+      if (AuthService.currentUser == null) {
+        await _carregarFoto();
+        return;
+      }
+
+      final userId = AuthService.currentUserId;
+      if (userId == null) {
+        await _carregarFoto();
+        return;
+      }
+
+      // Usar a URL pública da foto diretamente
+      // A foto já está no Supabase Storage e a URL está no perfil
+      // Para carregar, podemos usar a URL diretamente ou fazer download
+      // Por enquanto, vamos apenas marcar que temos a URL
+      // A imagem será carregada via NetworkImage quando necessário
+      setState(() {
+        _fotoPath = photoUrl; // Usar a URL como path para NetworkImage
+        _fotoData = null;
+      });
+    } catch (e) {
+      // Se falhar, tentar carregar foto local
+      await _carregarFoto();
+    }
+  }
+
   ImageProvider? _getBackgroundImage() {
     if (kIsWeb && _fotoData != null) {
       return MemoryImage(_fotoData!);
-    } else if (!kIsWeb && _fotoPath != null) {
-      return FileImage(File(_fotoPath!));
+    } else if (_fotoPath != null) {
+      // Se for uma URL (começa com http), usar NetworkImage
+      if (_fotoPath!.startsWith('http://') || _fotoPath!.startsWith('https://')) {
+        return NetworkImage(_fotoPath!);
+      } else if (!kIsWeb) {
+        // Se for um caminho local, usar FileImage
+        return FileImage(File(_fotoPath!));
+      }
     }
     return null;
   }
 
   Widget? _getAvatarChild() {
-    if ((kIsWeb && _fotoData == null) || (!kIsWeb && _fotoPath == null)) {
+    final hasPhoto = (kIsWeb && _fotoData != null) || 
+                     (_fotoPath != null && _fotoPath!.isNotEmpty);
+    if (!hasPhoto) {
       return const AppIcon(size: 60);
     }
     return null;
@@ -128,7 +175,17 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _salvarDadosUsuario() async {
     try {
-      // Salvar usando ProfileRepository
+      // Salvar no Supabase primeiro
+      try {
+        await AuthService.updateProfile(
+          name: _nome,
+          email: _email,
+        );
+      } catch (e) {
+        // Se falhar, continuar com fallback
+      }
+
+      // Salvar localmente também
       await ProfileRepository.updateProfileData(
         name: _nome,
         email: _email,
@@ -144,7 +201,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
         );
       }
     } catch (e) {
-      // Fallback para SharedPreferences se ProfileRepository falhar
+      // Fallback para SharedPreferences se tudo falhar
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('nome_usuario', _nome);
       await prefs.setString('email_usuario', _email);
@@ -383,11 +440,30 @@ class _PerfilScreenState extends State<PerfilScreen> {
         );
       }
 
-      // Salvar foto usando ProfileRepository
-      await ProfileRepository.setPhoto(imageFile);
-      
-      // Recarregar foto
-      await _carregarFoto();
+      // Converter para Uint8List
+      Uint8List imageBytes;
+      if (imageFile is File) {
+        imageBytes = await imageFile.readAsBytes();
+      } else if (imageFile is Uint8List) {
+        imageBytes = imageFile;
+      } else {
+        throw Exception('Tipo de arquivo não suportado');
+      }
+
+      // Salvar no Supabase Storage
+      try {
+        await AuthService.uploadPhoto(imageBytes);
+        
+        // Atualizar estado
+        setState(() {
+          _fotoData = imageBytes;
+          _fotoPath = null;
+        });
+      } catch (e) {
+        // Se falhar no Supabase, salvar localmente como fallback
+        await ProfileRepository.setPhoto(imageFile);
+        await _carregarFoto();
+      }
 
       // Fechar loading
       if (mounted) {
@@ -449,8 +525,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
           );
         }
 
-        // Remover foto usando ProfileRepository
-        await ProfileRepository.removePhoto();
+        // Remover foto do Supabase
+        try {
+          await AuthService.deletePhoto();
+        } catch (e) {
+          // Se falhar, remover localmente como fallback
+          await ProfileRepository.removePhoto();
+        }
         
         // Atualizar estado
         if (mounted) {

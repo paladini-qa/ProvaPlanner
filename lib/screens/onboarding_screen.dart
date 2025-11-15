@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
+import '../services/auth_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -96,8 +97,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('has_seen_onboarding', true);
     await prefs.setBool('has_accepted_policies', true);
     
+    // Marcar onboarding como completo no Supabase
+    try {
+      await AuthService.markOnboardingCompleted();
+    } catch (e) {
+      // Se falhar, continuar mesmo assim - não é crítico
+    }
+    
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/profile-setup');
+      // Navegar direto para a tela principal após onboarding
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
