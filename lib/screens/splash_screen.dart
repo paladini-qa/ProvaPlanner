@@ -71,16 +71,11 @@ class _SplashScreenState extends State<SplashScreen>
       // Iniciar tutorial se for primeira vez
       final tutorialCompleted = await TutorialService.isTutorialCompleted();
       final currentStep = await TutorialService.getCurrentStep();
-      debugPrint('Tutorial concluído: $tutorialCompleted');
-      debugPrint('Passo atual: $currentStep');
       
       if (!tutorialCompleted) {
         // Se o passo é none, iniciar o tutorial
         if (currentStep == TutorialStep.none) {
           await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
-          debugPrint('Tutorial iniciado: navigateToDisciplinas');
-        } else {
-          debugPrint('Tutorial já iniciado no passo: $currentStep');
         }
       }
       Navigator.pushReplacementNamed(context, '/home');

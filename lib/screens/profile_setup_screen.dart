@@ -298,8 +298,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           }
         } catch (e) {
           // Se falhar ao salvar foto, continuar sem ela
-          // Log do erro para debug
-          debugPrint('Erro ao salvar foto: $e');
         }
       }
 

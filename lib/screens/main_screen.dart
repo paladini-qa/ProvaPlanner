@@ -44,18 +44,9 @@ class _MainScreenState extends State<MainScreen> {
     final step = await TutorialService.getCurrentStep();
     final completed = await TutorialService.isTutorialCompleted();
     
-    debugPrint('=== TUTORIAL DEBUG ===');
-    debugPrint('Passo atual: $step');
-    debugPrint('Tutorial concluído: $completed');
-    debugPrint('navigateToDisciplinas: ${TutorialStep.navigateToDisciplinas}');
-    debugPrint('addDisciplina: ${TutorialStep.addDisciplina}');
-    
     // Se o tutorial não foi concluído e o passo é none, iniciar
     if (!completed && step == TutorialStep.none) {
-      debugPrint('Iniciando tutorial (passo era none)');
       await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
-      final newStep = await TutorialService.getCurrentStep();
-      debugPrint('Novo passo: $newStep');
       
       if (mounted) {
         setState(() {
@@ -67,7 +58,6 @@ class _MainScreenState extends State<MainScreen> {
     
     // Passo 0: Mostrar tutorial na navegação
     if (step == TutorialStep.navigateToDisciplinas) {
-      debugPrint('Mostrando tutorial de navegação');
       if (mounted) {
         setState(() {
           _showTutorialNav = true;
@@ -76,14 +66,11 @@ class _MainScreenState extends State<MainScreen> {
     }
     // Passo 1: Navegar para disciplinas e mostrar tutorial do FAB
     else if (step == TutorialStep.addDisciplina) {
-      debugPrint('Navegando para disciplinas');
       if (mounted) {
         setState(() {
           _currentIndex = 1; // Índice da tela de disciplinas
         });
       }
-    } else {
-      debugPrint('Tutorial não ativo ou já concluído');
     }
   }
 

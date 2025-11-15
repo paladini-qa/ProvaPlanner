@@ -5,19 +5,17 @@ import '../services/prova_service.dart';
 import '../config/env.dart';
 import 'ai_service.dart';
 import 'gemini_service.dart';
-import 'ai_service_mock.dart';
 
 class GoalSuggestionService {
-  static AIService get _aiService {
-    if (Env.useMockAi) {
-      return AIServiceMock();
+  static AIService _createAiService() {
+    final apiKey = Env.geminiApiKey;
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception(
+        'Chave da API do Gemini não configurada. '
+        'Por favor, configure a GEMINI_API_KEY no arquivo .env',
+      );
     }
-    try {
-      return GeminiService();
-    } catch (e) {
-      // Se falhar ao criar GeminiService, usar mock
-      return AIServiceMock();
-    }
+    return GeminiService();
   }
 
   static Future<List<DailyGoal>> gerarSugestoes() async {
@@ -48,7 +46,8 @@ class GoalSuggestionService {
     }).toList();
 
     // Gerar sugestões com IA
-    final sugestoesIA = await _aiService.sugerirMetas(
+    final aiService = _createAiService();
+    final sugestoesIA = await aiService.sugerirMetas(
       provasProximas: provasTexto,
       revisoesPendentes: revisoesTexto,
     );

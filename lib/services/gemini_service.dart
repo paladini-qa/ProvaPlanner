@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../config/env.dart';
 import 'ai_service.dart';
@@ -65,14 +64,24 @@ Título: [título aqui]
       }
       return text;
     } catch (e) {
-      debugPrint('Erro ao gerar resumo com Gemini: $e');
-      
       // Se o erro for sobre modelo não encontrado, sugerir verificar a chave da API
       final errorMsg = e.toString().toLowerCase();
-      if (errorMsg.contains('not found') || errorMsg.contains('not supported')) {
+      if (errorMsg.contains('not found') || errorMsg.contains('not supported') || errorMsg.contains('permission denied')) {
         throw Exception(
-          'Modelo não disponível. Verifique se sua chave da API tem acesso ao modelo gemini-pro. '
-          'Você pode precisar atualizar sua chave da API no Google AI Studio.',
+          'Modelo não disponível. Verifique se sua chave da API tem acesso ao modelo gemini-2.0-flash. '
+          'Você pode precisar atualizar sua chave da API no Google AI Studio (https://aistudio.google.com/).',
+        );
+      }
+      
+      if (errorMsg.contains('quota') || errorMsg.contains('limit')) {
+        throw Exception(
+          'Limite de quota da API excedido. Verifique seu uso no Google AI Studio ou aguarde alguns minutos.',
+        );
+      }
+      
+      if (errorMsg.contains('api key') || errorMsg.contains('authentication')) {
+        throw Exception(
+          'Chave da API inválida. Verifique se a GEMINI_API_KEY está correta no arquivo .env.',
         );
       }
       

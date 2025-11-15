@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/entities/daily_goal.dart';
@@ -7,9 +6,7 @@ import '../presentation/services/daily_goal_service.dart';
 import '../presentation/extensions/daily_goal_extension.dart';
 import '../services/prova_service.dart';
 import '../services/goal_suggestion_service.dart';
-import '../services/ai_service.dart';
 import '../services/gemini_service.dart';
-import '../services/ai_service_mock.dart';
 import '../config/env.dart';
 import '../widgets/daily_goal_dialog.dart';
 import '../widgets/daily_summary_card.dart';
@@ -133,53 +130,61 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
       final revisoesTexto = revisoesDoDia.map((r) => r.descricao).toList();
       final metasTexto = metasDoDia.map((m) => m.titulo).toList();
 
-      // Obter serviço de IA
-      AIService aiService;
-      
-      // Verificar se deve usar mock
-      final useMock = Env.useMockAi;
+      // Verificar se a chave da API está configurada
       final apiKey = Env.geminiApiKey;
-      
-      debugPrint('=== DEBUG RESUMO ===');
-      debugPrint('useMock: $useMock');
-      debugPrint('apiKey: ${apiKey != null ? "${apiKey.substring(0, apiKey.length > 10 ? 10 : apiKey.length)}..." : "null"}');
-      
-      if (useMock || apiKey == null || apiKey.isEmpty) {
-        // Usar mock se configurado ou se não há chave
-        debugPrint('Usando AIServiceMock');
-        aiService = AIServiceMock();
-      } else {
-        try {
-          // Tentar usar Gemini real
-          debugPrint('Tentando usar GeminiService');
-          aiService = GeminiService();
-          debugPrint('GeminiService criado com sucesso');
-        } catch (e) {
-          // Se falhar, usar mock
-          debugPrint('Erro ao inicializar Gemini: $e');
-          aiService = AIServiceMock();
-        }
+      if (apiKey == null || apiKey.isEmpty) {
+        throw Exception(
+          'Chave da API do Gemini não configurada. '
+          'Por favor, configure a GEMINI_API_KEY no arquivo .env',
+        );
       }
 
+      // Criar serviço de IA
+      final aiService = GeminiService();
+      
       // Gerar resumo
-      debugPrint('Gerando resumo...');
       final resumo = await aiService.gerarResumoDiario(
         provas: provasTexto,
         revisoes: revisoesTexto,
         metas: metasTexto,
       );
-      debugPrint('Resumo gerado com sucesso (${resumo.length} caracteres)');
 
       setState(() {
         _resumoDiario = resumo;
         _isLoadingResumo = false;
       });
-    } catch (e, stackTrace) {
-      debugPrint('=== ERRO AO GERAR RESUMO ===');
-      debugPrint('Erro: $e');
-      debugPrint('StackTrace: $stackTrace');
+    } catch (e) {
+      String mensagemErro;
+      final errorStr = e.toString();
+      
+      if (errorStr.contains('GEMINI_API_KEY não configurada') || 
+          errorStr.contains('Chave da API do Gemini não configurada')) {
+        mensagemErro = 'Chave da API não configurada.\n\n'
+            'Por favor, configure a GEMINI_API_KEY no arquivo .env do projeto.';
+      } else if (errorStr.contains('Modelo não disponível') || 
+                 errorStr.contains('permission denied')) {
+        mensagemErro = 'Erro ao acessar o modelo da IA.\n\n'
+            'Verifique se sua chave da API tem acesso ao modelo gemini-2.0-flash. '
+            'Acesse https://aistudio.google.com/ para verificar.';
+      } else if (errorStr.contains('quota') || errorStr.contains('limit')) {
+        mensagemErro = 'Limite de quota da API excedido.\n\n'
+            'Verifique seu uso no Google AI Studio ou aguarde alguns minutos antes de tentar novamente.';
+      } else if (errorStr.contains('api key') || errorStr.contains('authentication') ||
+                 errorStr.contains('Chave da API inválida')) {
+        mensagemErro = 'Chave da API inválida.\n\n'
+            'Verifique se a GEMINI_API_KEY está correta no arquivo .env.';
+      } else if (errorStr.contains('network') || errorStr.contains('connection') ||
+                 errorStr.contains('timeout') || errorStr.contains('socket')) {
+        mensagemErro = 'Erro de conexão com a API.\n\n'
+            'Verifique sua conexão com a internet e tente novamente.';
+      } else {
+        mensagemErro = 'Erro ao gerar resumo.\n\n'
+            'Detalhes: ${errorStr.length > 100 ? errorStr.substring(0, 100) + "..." : errorStr}\n\n'
+            'Verifique o console para mais informações.';
+      }
+      
       setState(() {
-        _resumoDiario = 'Erro ao gerar resumo: $e\n\nVerifique o console para mais detalhes.';
+        _resumoDiario = mensagemErro;
         _isLoadingResumo = false;
       });
     }

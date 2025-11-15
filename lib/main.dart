@@ -13,16 +13,8 @@ void main() async {
   // Carregar variáveis de ambiente (opcional - não falha se não existir)
   try {
     await Env.load();
-    debugPrint('=== ENV LOAD DEBUG ===');
-    debugPrint('Env carregado. Verificando chave...');
-    final apiKey = Env.geminiApiKey;
-    final useMock = Env.useMockAi;
-    debugPrint('API Key presente: ${apiKey != null && apiKey.isNotEmpty}');
-    debugPrint('Usar Mock: $useMock');
   } catch (e) {
-    // .env não existe ou não pode ser carregado - usar valores padrão
-    debugPrint('Aviso: Arquivo .env não encontrado. Usando modo mock para IA.');
-    debugPrint('Erro: $e');
+    // .env não existe ou não pode ser carregado - silenciosamente
   }
   
   runApp(const ProvaPlannerApp());

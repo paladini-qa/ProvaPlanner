@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum TutorialStep {
@@ -32,14 +31,13 @@ class TutorialService {
       }
       
       if (stepIndex >= 0 && stepIndex < TutorialStep.values.length) {
-        return TutorialStep.values[stepIndex];
-      }
-      
-      return TutorialStep.none;
-    } catch (e) {
-      debugPrint('Erro ao obter passo do tutorial: $e');
-      return TutorialStep.none;
+      return TutorialStep.values[stepIndex];
     }
+    
+    return TutorialStep.none;
+  } catch (e) {
+    return TutorialStep.none;
+  }
   }
 
   // Definir passo atual do tutorial
