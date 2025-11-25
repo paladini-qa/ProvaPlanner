@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_icon.dart';
 import '../theme/app_theme.dart';
-import '../services/tutorial_service.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 
@@ -101,19 +100,6 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/policies');
     } else {
-      // Iniciar tutorial se for primeira vez
-      final tutorialCompleted = await TutorialService.isTutorialCompleted();
-      final currentStep = await TutorialService.getCurrentStep();
-
-      if (!mounted) return;
-
-      if (!tutorialCompleted) {
-        // Se o passo é none, iniciar o tutorial
-        if (currentStep == TutorialStep.none) {
-          await TutorialService.setCurrentStep(
-              TutorialStep.navigateToDisciplinas);
-        }
-      }
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     }

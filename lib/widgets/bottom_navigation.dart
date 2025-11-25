@@ -4,15 +4,11 @@ import '../theme/app_theme.dart';
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
   final void Function(int) onTap;
-  final int? highlightIndex;
-  final GlobalKey? disciplinasKey;
 
   const CustomBottomNavigation({
     super.key,
     required this.currentIndex,
     required this.onTap,
-    this.highlightIndex,
-    this.disciplinasKey,
   });
 
   @override
@@ -39,8 +35,8 @@ class CustomBottomNavigation extends StatelessWidget {
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: _buildIcon(Icons.school, 1, key: disciplinasKey),
-          activeIcon: _buildIcon(Icons.school, 1, isActive: true, key: disciplinasKey),
+          icon: _buildIcon(Icons.school, 1),
+          activeIcon: _buildIcon(Icons.school, 1, isActive: true),
           label: 'Disciplinas',
         ),
         BottomNavigationBarItem(
@@ -57,36 +53,7 @@ class CustomBottomNavigation extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(IconData icon, int index, {bool isActive = false, Key? key}) {
-    final isHighlighted = highlightIndex == index;
-    
-    Widget iconWidget = Icon(icon);
-    
-    if (isHighlighted && !isActive) {
-      iconWidget = Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppTheme.indigo.withValues(alpha: 0.2),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppTheme.indigo,
-            width: 2,
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: AppTheme.indigo,
-        ),
-      );
-    }
-    
-    if (key != null) {
-      return KeyedSubtree(
-        key: key,
-        child: iconWidget,
-      );
-    }
-    
-    return iconWidget;
+  Widget _buildIcon(IconData icon, int index, {bool isActive = false}) {
+    return Icon(icon);
   }
 }

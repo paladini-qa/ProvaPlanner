@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/tutorial_service.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/tutorial_arrow.dart';
-import '../widgets/tutorial_overlay.dart';
+import '../features/disciplinas/presentation/pages/disciplinas_list_page.dart';
 import 'daily_goals_screen.dart';
 import 'disciplinas_screen.dart';
 import 'home_screen.dart';
@@ -18,9 +17,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  bool _showTutorialNav = false;
-  final GlobalKey _navKey = GlobalKey();
-  final GlobalKey _disciplinasNavKey = GlobalKey();
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -29,6 +25,8 @@ class _MainScreenState extends State<MainScreen> {
     const PerfilScreen(),
   ];
 
+  final List<String> _tabNames = ['home', 'disciplinas', 'daily_goals', 'perfil'];
+
   @override
   void initState() {
     super.initState();
@@ -36,64 +34,38 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> _verificarTutorialInicial() async {
-    // Aguardar um pouco para garantir que as telas estão carregadas
-    await Future<void>.delayed(const Duration(milliseconds: 1500));
+    // Aguardar um pouco para garantir que a tela está carregada
+    await Future<void>.delayed(const Duration(milliseconds: 500));
 
     if (!mounted) return;
 
-    final step = await TutorialService.getCurrentStep();
-    final completed = await TutorialService.isTutorialCompleted();
-
-    // Se o tutorial não foi concluído e o passo é none, iniciar
-    if (!completed && step == TutorialStep.none) {
-      await TutorialService.setCurrentStep(TutorialStep.navigateToDisciplinas);
-
-      if (mounted) {
-        setState(() {
-          _showTutorialNav = true;
-        });
-      }
-      return;
-    }
-
-    // Passo 0: Mostrar tutorial na navegação
-    if (step == TutorialStep.navigateToDisciplinas) {
-      if (mounted) {
-        setState(() {
-          _showTutorialNav = true;
-        });
-      }
-    }
-    // Passo 1: Navegar para disciplinas e mostrar tutorial do FAB
-    else if (step == TutorialStep.addDisciplina) {
-      if (mounted) {
-        setState(() {
-          _currentIndex = 1; // Índice da tela de disciplinas
-        });
-      }
+    // Verificar se é a primeira vez que abre o app
+    final isFirstLaunch = await TutorialService.isFirstLaunch();
+    if (isFirstLaunch) {
+      await _mostrarDialogoBemVindo();
+      await TutorialService.markFirstLaunchComplete();
     }
   }
 
-  Future<void> _proximoPassoTutorial() async {
-    await TutorialService.nextStep();
-    setState(() {
-      _showTutorialNav = false;
-    });
+  Future<void> _mostrarDialogoBemVindo() async {
+    if (!mounted) return;
 
-    // Após clicar na navegação, avançar para próximo passo
-    final newStep = await TutorialService.getCurrentStep();
-    if (newStep == TutorialStep.addDisciplina) {
-      setState(() {
-        _currentIndex = 1; // Navegar para disciplinas
-      });
-    }
-  }
-
-  Future<void> _pularTutorial() async {
-    await TutorialService.skipTutorial();
-    setState(() {
-      _showTutorialNav = false;
-    });
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('👋 Bem-vindo ao ProvaPlanner!'),
+        content: const Text(
+          'Este é o seu organizador de estudos. Use as abas na parte inferior para navegar entre as diferentes funcionalidades.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onNavTap(int index) {
@@ -101,88 +73,148 @@ class _MainScreenState extends State<MainScreen> {
       _currentIndex = index;
     });
 
-    // Se estava no tutorial de navegação e clicou em disciplinas
-    if (_showTutorialNav && index == 1) {
-      _proximoPassoTutorial();
-    } else {
-      // Verificar se precisa mostrar tutorial após mudança de tela
-      _verificarTutorialAposNavegacao();
+    // Verificar se é a primeira vez que clica nesta aba
+    _verificarTutorialAba(index);
+  }
+
+  Future<void> _verificarTutorialAba(int index) async {
+    if (index < 0 || index >= _tabNames.length) return;
+
+    final tabName = _tabNames[index];
+    final hasVisited = await TutorialService.hasVisitedTab(tabName);
+
+    if (!hasVisited && mounted) {
+      await _mostrarDialogoAba(tabName);
+      await TutorialService.markTabVisited(tabName);
     }
   }
 
-  Future<void> _verificarTutorialAposNavegacao() async {
-    // Aguardar um pouco para a tela renderizar
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-
+  Future<void> _mostrarDialogoAba(String tabName) async {
     if (!mounted) return;
 
-    final step = await TutorialService.getCurrentStep();
+    String title;
+    String message;
 
-    // Se está na tela de disciplinas e o passo é addDisciplina
-    if (_currentIndex == 1 && step == TutorialStep.addDisciplina) {
-      // A tela de disciplinas vai mostrar o tutorial automaticamente
+    switch (tabName) {
+      case 'home':
+        title = '🏠 Tela Inicial';
+        message = 'Aqui você pode ver seu calendário de provas e revisões. Use o botão + para adicionar novas provas.';
+        break;
+      case 'disciplinas':
+        title = '📚 Disciplinas';
+        message = 'Gerencie suas disciplinas aqui. Adicione novas disciplinas usando o botão + e organize por período.';
+        break;
+      case 'daily_goals':
+        title = '🎯 Metas Diárias';
+        message = 'Defina e acompanhe suas metas de estudo diárias para manter o foco e a organização. Use o botão + para adicionar uma nova meta.';
+        break;
+      case 'perfil':
+        title = '👤 Perfil';
+        message = 'Acesse suas configurações e informações do perfil aqui.';
+        break;
+      default:
+        title = 'Nova Aba';
+        message = 'Explore esta nova funcionalidade!';
     }
-    // Se está na tela de home e o passo é addProva
-    else if (_currentIndex == 0 && step == TutorialStep.addProva) {
-      // A tela de home vai mostrar o tutorial automaticamente
-    }
-    // Se o passo mudou para addProva, navegar para home
-    else if (step == TutorialStep.addProva && _currentIndex != 0) {
-      setState(() {
-        _currentIndex = 0; // Navegar para home
-      });
-    }
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Verificar tutorial periodicamente
-    _verificarTutorialPeriodicamente();
-  }
-
-  Future<void> _verificarTutorialPeriodicamente() async {
-    await Future<void>.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-
-    final step = await TutorialService.getCurrentStep();
-
-    // Se o passo mudou para addProva e não está na home, navegar
-    if (step == TutorialStep.addProva && _currentIndex != 0) {
-      setState(() {
-        _currentIndex = 0;
-      });
-    }
+  void _navegarParaDisciplinas() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (context) => const DisciplinasListPage(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          body: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
-          ),
-          bottomNavigationBar: CustomBottomNavigation(
-            key: _navKey,
-            currentIndex: _currentIndex,
-            onTap: _onNavTap,
-            highlightIndex: _showTutorialNav ? 1 : null,
-            disciplinasKey: _showTutorialNav ? _disciplinasNavKey : null,
-          ),
+    return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'ProvaPlanner',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Gerenciamento de Entidades',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('Disciplinas'),
+              onTap: () {
+                Navigator.pop(context);
+                _navegarParaDisciplinas();
+              },
+            ),
+            // Adicionar outras entidades aqui conforme necessário
+            // ListTile(
+            //   leading: const Icon(Icons.assignment),
+            //   title: const Text('Provas'),
+            //   onTap: () {
+            //     Navigator.pop(context);
+            //     // Navegar para listagem de Provas
+            //   },
+            // ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _currentIndex = 0;
+                });
+              },
+            ),
+          ],
         ),
-        if (_showTutorialNav)
-          TutorialOverlay(
-            title: '👋 Bem-vindo!',
-            message:
-                'Vamos começar! Toque no ícone "Disciplinas" na barra de navegação abaixo para começar a organizar seus estudos.',
-            targetKey: _disciplinasNavKey,
-            arrowPosition: ArrowPosition.top,
-            onNext: _proximoPassoTutorial,
-            onSkip: _pularTutorial,
-          ),
-      ],
+      ),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: CustomBottomNavigation(
+        currentIndex: _currentIndex,
+        onTap: _onNavTap,
+      ),
     );
   }
 }

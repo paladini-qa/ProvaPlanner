@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/disciplina.dart';
 import '../services/disciplina_service.dart';
-import '../services/tutorial_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
-import '../widgets/tutorial_overlay.dart';
-import '../widgets/tutorial_arrow.dart';
 import 'adicionar_disciplina_screen.dart';
 import 'detalhes_disciplina_screen.dart';
 
@@ -20,8 +17,6 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
   List<Disciplina> _disciplinas = [];
   bool _isLoading = true;
   String _periodoFiltro = 'Todos';
-  bool _showTutorial = false;
-  final GlobalKey _fabKey = GlobalKey();
 
   final List<String> _periodos = [
     'Todos',
@@ -39,48 +34,6 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
   void initState() {
     super.initState();
     _carregarDisciplinas();
-    _verificarTutorial();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Verificar tutorial novamente quando a tela ganha foco (útil para IndexedStack)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _verificarTutorial();
-    });
-  }
-
-  Future<void> _verificarTutorial() async {
-    if (_showTutorial) return; // Já está mostrando
-    
-    final step = await TutorialService.getCurrentStep();
-    if (step == TutorialStep.addDisciplina) {
-      // Aguardar um pouco para garantir que a UI está renderizada
-      await Future<void>.delayed(const Duration(milliseconds: 1000));
-      if (mounted && !_showTutorial) {
-        setState(() {
-          _showTutorial = true;
-        });
-      }
-    }
-  }
-
-  Future<void> _proximoPassoTutorial() async {
-    await TutorialService.nextStep();
-    setState(() {
-      _showTutorial = false;
-    });
-    
-    // Após cadastrar disciplina, avançar para próximo passo
-    // O MainScreen vai detectar a mudança de passo e navegar para home
-  }
-
-  Future<void> _pularTutorial() async {
-    await TutorialService.skipTutorial();
-    setState(() {
-      _showTutorial = false;
-    });
   }
 
   Future<void> _carregarDisciplinas() async {
@@ -111,11 +64,6 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
     
     if (result == true) {
       _carregarDisciplinas();
-      // Avançar tutorial se estiver ativo
-      final step = await TutorialService.getCurrentStep();
-      if (step == TutorialStep.addDisciplina) {
-        await _proximoPassoTutorial();
-      }
     }
   }
 
@@ -204,26 +152,12 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _disciplinasFiltradas.isEmpty
-                  ? _buildEmptyState()
-                  : _buildDisciplinasList(),
-          if (_showTutorial)
-            TutorialOverlay(
-              title: '🎯 Bem-vindo ao ProvaPlanner!',
-              message: 'Vamos começar! Primeiro, cadastre uma disciplina tocando no botão + abaixo. Isso é essencial para organizar suas provas e estudos.',
-              targetKey: _fabKey,
-              arrowPosition: ArrowPosition.top,
-              onNext: _proximoPassoTutorial,
-              onSkip: _pularTutorial,
-            ),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _disciplinasFiltradas.isEmpty
+              ? _buildEmptyState()
+              : _buildDisciplinasList(),
       floatingActionButton: FloatingActionButton(
-        key: _fabKey,
         onPressed: _adicionarDisciplina,
         child: const Icon(Icons.add),
       ),

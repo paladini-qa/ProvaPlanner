@@ -1,93 +1,69 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum TutorialStep {
-  none,
-  navigateToDisciplinas,  // Passo 0: Navegar para tela de disciplinas
-  addDisciplina,          // Passo 1: Adicionar disciplina
-  addProva,              // Passo 2: Adicionar prova
-  viewCalendar,          // Passo 3: Ver calendário
-  addDailyGoal,          // Passo 4: Adicionar meta diária
-  completed,             // Tutorial concluído
-}
-
 class TutorialService {
-  static const String _key = 'tutorial_step';
-  static const String _keyCompleted = 'tutorial_completed';
+  static const String _keyFirstLaunch = 'tutorial_first_launch';
+  static const String _keyHomeVisited = 'tutorial_home_visited';
+  static const String _keyDisciplinasVisited = 'tutorial_disciplinas_visited';
+  static const String _keyDailyGoalsVisited = 'tutorial_daily_goals_visited';
+  static const String _keyPerfilVisited = 'tutorial_perfil_visited';
 
-  // Obter passo atual do tutorial
-  static Future<TutorialStep> getCurrentStep() async {
+  // Verificar se é a primeira vez que abre o app
+  static Future<bool> isFirstLaunch() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final completed = prefs.getBool(_keyCompleted) ?? false;
-      
-      if (completed) {
-        return TutorialStep.completed;
-      }
-
-      final stepIndex = prefs.getInt(_key);
-      if (stepIndex == null) {
-        // Se não há passo salvo, retornar none (primeira vez)
-        return TutorialStep.none;
-      }
-      
-      if (stepIndex >= 0 && stepIndex < TutorialStep.values.length) {
-      return TutorialStep.values[stepIndex];
+      return prefs.getBool(_keyFirstLaunch) != true;
+    } catch (e) {
+      return true;
     }
-    
-    return TutorialStep.none;
-  } catch (e) {
-    return TutorialStep.none;
-  }
   }
 
-  // Definir passo atual do tutorial
-  static Future<void> setCurrentStep(TutorialStep step) async {
+  // Marcar que o app já foi aberto
+  static Future<void> markFirstLaunchComplete() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_key, step.index);
-    
-    if (step == TutorialStep.completed) {
-      await prefs.setBool(_keyCompleted, true);
+    await prefs.setBool(_keyFirstLaunch, true);
+  }
+
+  // Verificar se uma aba específica já foi visitada
+  static Future<bool> hasVisitedTab(String tabName) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = _getTabKey(tabName);
+      return prefs.getBool(key) == true;
+    } catch (e) {
+      return false;
     }
   }
 
-  // Avançar para o próximo passo
-  static Future<void> nextStep() async {
-    final currentStep = await getCurrentStep();
-    
-    if (currentStep == TutorialStep.completed) {
-      return;
-    }
-
-    final nextIndex = currentStep.index + 1;
-    if (nextIndex < TutorialStep.completed.index) {
-      await setCurrentStep(TutorialStep.values[nextIndex]);
-    } else {
-      await setCurrentStep(TutorialStep.completed);
-    }
+  // Marcar que uma aba foi visitada
+  static Future<void> markTabVisited(String tabName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = _getTabKey(tabName);
+    await prefs.setBool(key, true);
   }
 
-  // Pular tutorial
-  static Future<void> skipTutorial() async {
-    await setCurrentStep(TutorialStep.completed);
+  static String _getTabKey(String tabName) {
+    switch (tabName) {
+      case 'home':
+        return _keyHomeVisited;
+      case 'disciplinas':
+        return _keyDisciplinasVisited;
+      case 'daily_goals':
+        return _keyDailyGoalsVisited;
+      case 'perfil':
+        return _keyPerfilVisited;
+      default:
+        return 'tutorial_${tabName}_visited';
+    }
   }
 
   // Reiniciar tutorial (útil para testes)
   static Future<void> resetTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
-    await prefs.remove(_keyCompleted);
-  }
-
-  // Verificar se tutorial está ativo
-  static Future<bool> isTutorialActive() async {
-    final step = await getCurrentStep();
-    return step != TutorialStep.none && step != TutorialStep.completed;
-  }
-
-  // Verificar se tutorial foi concluído
-  static Future<bool> isTutorialCompleted() async {
-    final step = await getCurrentStep();
-    return step == TutorialStep.completed;
+    await prefs.remove(_keyFirstLaunch);
+    await prefs.remove(_keyHomeVisited);
+    await prefs.remove(_keyDisciplinasVisited);
+    await prefs.remove(_keyDailyGoalsVisited);
+    await prefs.remove(_keyPerfilVisited);
   }
 }
 

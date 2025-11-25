@@ -25,8 +25,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
   List<DailyGoal> _goals = [];
   bool _isLoading = true;
   DateTime _dataSelecionada = DateTime.now();
-  bool _mostrarTutorial = false;
-  bool _tutorialConcluido = false;
   String _resumoDiario = '';
   bool _isLoadingResumo = false;
 
@@ -38,7 +36,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
   void initState() {
     super.initState();
     _setupFabAnimations();
-    _verificarTutorial();
     _carregarGoals();
   }
 
@@ -71,29 +68,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
     _fabAnimationController.repeat(reverse: true);
   }
 
-  Future<void> _verificarTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    final concluido = prefs.getBool('daily_goals_tutorial_concluido') ?? false;
-    setState(() {
-      _tutorialConcluido = concluido;
-      if (!concluido) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _mostrarTutorial = true;
-          });
-        });
-      }
-    });
-  }
-
-  Future<void> _marcarTutorialConcluido() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('daily_goals_tutorial_concluido', true);
-    setState(() {
-      _tutorialConcluido = true;
-      _mostrarTutorial = false;
-    });
-  }
 
   Future<void> _carregarGoals() async {
     setState(() {
@@ -514,53 +488,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
     );
   }
 
-  Widget _buildTutorialOverlay() {
-    if (!_mostrarTutorial || _tutorialConcluido) {
-      return const SizedBox.shrink();
-    }
-
-    return GestureDetector(
-      onTap: _marcarTutorialConcluido,
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.7),
-        child: Center(
-          child: Card(
-            margin: const EdgeInsets.all(24),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.school,
-                    size: 48,
-                    color: AppTheme.indigo,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Bem-vindo às Metas Diárias!',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Crie metas diárias de estudo para organizar melhor seu tempo e alcançar seus objetivos acadêmicos.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: _marcarTutorialConcluido,
-                    child: const Text('Entendi'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   void dispose() {
@@ -650,7 +577,6 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
               ),
             ],
           ),
-          _buildTutorialOverlay(),
         ],
       ),
       floatingActionButton: AnimatedBuilder(
@@ -658,7 +584,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
         builder: (context, child) {
           return Transform.scale(
             scale: _fabScaleAnimation.value,
-            child: Transform.rotate(
+              child: Transform.rotate(
               angle: _fabRotationAnimation.value,
               child: FloatingActionButton(
                 onPressed: _adicionarGoal,
