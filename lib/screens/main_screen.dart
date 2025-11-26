@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../services/tutorial_service.dart';
 import '../widgets/bottom_navigation.dart';
 import '../features/disciplinas/presentation/pages/disciplinas_list_page.dart';
+import '../features/alunos/presentation/pages/alunos_list_page.dart';
+import '../features/tarefas/presentation/pages/tarefas_list_page.dart';
+import '../features/cursos/presentation/pages/cursos_list_page.dart';
+import '../features/anotacoes/presentation/pages/anotacoes_list_page.dart';
 import 'daily_goals_screen.dart';
 import 'disciplinas_screen.dart';
 import 'home_screen.dart';
@@ -142,6 +146,22 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  void _navegarParaAlunos() {
+    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const AlunosListPage()));
+  }
+
+  void _navegarParaTarefas() {
+    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const TarefasListPage()));
+  }
+
+  void _navegarParaCursos() {
+    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const CursosListPage()));
+  }
+
+  void _navegarParaAnotacoes() {
+    Navigator.push(context, MaterialPageRoute<void>(builder: (context) => const AnotacoesListPage()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,7 +204,38 @@ class _MainScreenState extends State<MainScreen> {
                 _navegarParaDisciplinas();
               },
             ),
-            // Adicionar outras entidades aqui conforme necessário
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Alunos'),
+              onTap: () {
+                Navigator.pop(context);
+                _navegarParaAlunos();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.task),
+              title: const Text('Tarefas'),
+              onTap: () {
+                Navigator.pop(context);
+                _navegarParaTarefas();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.book),
+              title: const Text('Cursos'),
+              onTap: () {
+                Navigator.pop(context);
+                _navegarParaCursos();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.note),
+              title: const Text('Anotações'),
+              onTap: () {
+                Navigator.pop(context);
+                _navegarParaAnotacoes();
+              },
+            ),
             // ListTile(
             //   leading: const Icon(Icons.assignment),
             //   title: const Text('Provas'),
