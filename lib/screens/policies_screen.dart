@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../services/consent_service.dart';
+import '../widgets/policy_markdown_viewer.dart';
 
 class PoliciesScreen extends StatefulWidget {
   const PoliciesScreen({super.key});
@@ -14,16 +15,47 @@ class _PoliciesScreenState extends State<PoliciesScreen> {
   bool _acceptedPrivacy = false;
   bool _acceptedDataProcessing = false;
   bool _acceptedNotifications = false;
+  bool _termsRead = false;
+  bool _privacyRead = false;
+  bool _lgpdRead = false;
 
   bool get _canProceed => 
       _acceptedTerms && _acceptedPrivacy && _acceptedDataProcessing;
 
+  @override
+  void initState() {
+    super.initState();
+    _checkPolicyVersion();
+  }
+
+  Future<void> _checkPolicyVersion() async {
+    final needsAcceptance = await ConsentService.needsPolicyAcceptance();
+    if (needsAcceptance && mounted) {
+      // Mostrar aviso se a versão mudou
+      final acceptedVersion = await ConsentService.getAcceptedVersion();
+      if (acceptedVersion != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'As políticas foram atualizadas. Por favor, revise e aceite novamente.',
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _acceptPolicies() async {
     if (!_canProceed) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_accepted_policies', true);
-    await prefs.setBool('notifications_enabled', _acceptedNotifications);
+    await ConsentService.acceptPolicies(
+      acceptedTerms: _acceptedTerms,
+      acceptedPrivacy: _acceptedPrivacy,
+      acceptedDataProcessing: _acceptedDataProcessing,
+      acceptedNotifications: _acceptedNotifications,
+    );
     
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/home');
@@ -194,23 +226,77 @@ Você pode exercer seus direitos entrando em contato conosco.
               ),
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             
-            // Link para mais informações
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  // Aqui você pode adicionar navegação para uma tela de detalhes
-                  _showDetailedPolicies();
-                },
-                child: const Text(
-                  'Ver políticas completas',
-                  style: TextStyle(
-                    color: AppTheme.indigo,
-                    decoration: TextDecoration.underline,
+            // Links para políticas completas
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: () => _showPolicyDialog(
+                    'Termos de Uso',
+                    'assets/policies/terms_of_service.md',
+                    () => setState(() => _termsRead = true),
+                  ),
+                  child: const Text(
+                    'Ver Termos Completos',
+                    style: TextStyle(
+                      color: AppTheme.indigo,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
-              ),
+                TextButton(
+                  onPressed: () => _showPolicyDialog(
+                    'Política de Privacidade',
+                    'assets/policies/privacy_policy.md',
+                    () => setState(() => _privacyRead = true),
+                  ),
+                  child: const Text(
+                    'Ver Privacidade Completa',
+                    style: TextStyle(
+                      color: AppTheme.indigo,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _showPolicyDialog(
+                    'Política LGPD',
+                    'assets/policies/lgpd_policy.md',
+                    () => setState(() => _lgpdRead = true),
+                  ),
+                  child: const Text(
+                    'Ver LGPD Completa',
+                    style: TextStyle(
+                      color: AppTheme.indigo,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Informação sobre versão
+            FutureBuilder<String?>(
+              future: ConsentService.getAcceptedVersion(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  return Center(
+                    child: Text(
+                      'Versão aceita anteriormente: ${snapshot.data}\nVersão atual: ${ConsentService.currentPolicyVersion}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.slateLight,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
           ],
         ),
@@ -286,22 +372,88 @@ Você pode exercer seus direitos entrando em contato conosco.
     );
   }
 
-  void _showDetailedPolicies() {
+  void _showPolicyDialog(String title, String assetPath, VoidCallback onReadComplete) {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Políticas Completas'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Aqui você encontraria as políticas completas do aplicativo, incluindo todos os detalhes sobre coleta, processamento e proteção de dados conforme a LGPD.',
+      builder: (context) => Dialog(
+        child: Container(
+          constraints: const BoxConstraints(
+            maxWidth: 600,
+            maxHeight: 700,
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.indigo,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                  child: PolicyMarkdownViewer(
+                    assetPath: assetPath,
+                    showProgressBar: false,
+                    onReadComplete: () {
+                      onReadComplete();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('$title marcado como lido'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ),
+              // Footer
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.indigo,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Fechar'),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
-          ),
-        ],
       ),
     );
   }

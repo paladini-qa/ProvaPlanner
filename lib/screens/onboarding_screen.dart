@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
+import '../widgets/animated_page_indicator.dart';
 import '../services/auth_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -292,25 +293,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             
-            // Indicadores de página
+            // Indicadores de página animados
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _pages.length + 1, // +1 para página de termos
-                  (index) => Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentPage == index ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _currentPage == index
-                          ? AppTheme.indigo
-                          : AppTheme.indigo.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
+              child: AnimatedPageIndicator(
+                currentPage: _currentPage,
+                pageCount: _pages.length + 1, // +1 para página de termos
+                activeColor: AppTheme.indigo,
+                inactiveColor: AppTheme.indigo.withValues(alpha: 0.3),
+                activeWidth: 24.0,
+                inactiveWidth: 8.0,
+                height: 8.0,
+                animationDuration: const Duration(milliseconds: 300),
+                animationCurve: Curves.easeInOut,
               ),
             ),
             

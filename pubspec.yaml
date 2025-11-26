@@ -20,13 +20,23 @@ dependencies:
   google_generative_ai: ^0.2.0
   flutter_dotenv: ^5.1.0
   supabase_flutter: ^2.5.6
+  flutter_markdown: ^0.6.18
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   assets:
     - .env # Arquivo de variáveis de ambiente (crie na raiz do projeto)
+    - assets/policies/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  # image_path: "assets/icon/app_icon.png"  # Descomente e forneça o ícone quando disponível
+  # min_sdk_android: 21
+  # remove_alpha_ios: true

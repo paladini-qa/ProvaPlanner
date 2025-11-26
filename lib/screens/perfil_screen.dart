@@ -9,7 +9,9 @@ import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../repositories/profile_repository.dart';
 import '../services/auth_service.dart';
+import '../services/consent_service.dart';
 import 'login_screen.dart';
+import 'policies_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -630,6 +632,155 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  Future<void> _gerenciarConsentimento() async {
+    final hasAccepted = await ConsentService.hasAcceptedPolicies();
+    final isRevoked = await ConsentService.isConsentRevoked();
+    final acceptedVersion = await ConsentService.getAcceptedVersion();
+    final acceptedTimestamp = await ConsentService.getAcceptedTimestamp();
+
+    if (!mounted) return;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gerenciar Consentimento'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (hasAccepted && !isRevoked) ...[
+                const Text(
+                  'Status do Consentimento:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                if (acceptedVersion != null)
+                  Text('Versão aceita: $acceptedVersion'),
+                if (acceptedTimestamp != null)
+                  Text(
+                    'Data de aceite: ${acceptedTimestamp.day}/${acceptedTimestamp.month}/${acceptedTimestamp.year}',
+                  ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Você pode revogar seu consentimento a qualquer momento. '
+                  'Isso não afetará o uso básico do aplicativo, mas algumas funcionalidades podem ser limitadas.',
+                ),
+              ] else if (isRevoked) ...[
+                const Text(
+                  'Consentimento Revogado',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Seu consentimento foi revogado. Você pode aceitar novamente a qualquer momento.',
+                ),
+              ] else ...[
+                const Text(
+                  'Nenhum consentimento registrado',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Você ainda não aceitou as políticas. Será necessário aceitar para usar todas as funcionalidades.',
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+          if (hasAccepted && !isRevoked)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _revogarConsentimento();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.orange),
+              child: const Text('Revogar'),
+            ),
+          if (isRevoked || !hasAccepted)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const PoliciesScreen(),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: AppTheme.indigo),
+              child: const Text('Aceitar Políticas'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _revogarConsentimento() async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Revogar Consentimento'),
+        content: const Text(
+          'Tem certeza que deseja revogar seu consentimento? '
+          'Algumas funcionalidades podem ser limitadas. '
+          'Você poderá aceitar novamente a qualquer momento.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            child: const Text('Revogar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      final previousData = await ConsentService.revokeConsent();
+
+      if (mounted) {
+        // Mostrar SnackBar com opção de desfazer
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Consentimento revogado'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 5),
+            action: previousData != null
+                ? SnackBarAction(
+                    label: 'Desfazer',
+                    textColor: Colors.white,
+                    onPressed: () async {
+                      await ConsentService.undoRevocation(previousData);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Consentimento restaurado'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
+                  )
+                : null,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _limparDados() async {
     final confirmado = await showDialog<bool>(
       context: context,
@@ -854,6 +1005,13 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           title: const Text('Sair da Conta'),
                           subtitle: const Text('Fazer logout da sua conta'),
                           onTap: _handleLogout,
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.privacy_tip, color: Colors.orange),
+                          title: const Text('Gerenciar Consentimento'),
+                          subtitle: const Text('Revogar ou revisar consentimento LGPD'),
+                          onTap: _gerenciarConsentimento,
                         ),
                         const Divider(height: 1),
                         ListTile(
