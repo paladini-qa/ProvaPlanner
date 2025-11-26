@@ -62,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Prova> _provas = [];
   List<Revisao> _revisoes = [];
   bool _isLoading = true;
-  CalendarView _calendarView = CalendarView.month;
 
   @override
   void initState() {
@@ -113,45 +112,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _carregarDados();
   }
 
-  Widget _buildFormatButton(String label, CalendarView view, IconData icon) {
-    final isSelected = _calendarView == view;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _calendarView = view;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color:
-              isSelected ? Theme.of(context).primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected ? Colors.white : Colors.grey[600],
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,45 +141,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                   children: [
-                    // Seletor de formato do calendário
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildFormatButton(
-                                  'Mês',
-                                  CalendarView.month,
-                                  Icons.calendar_view_month,
-                                ),
-                                _buildFormatButton(
-                                  'Semana',
-                                  CalendarView.week,
-                                  Icons.calendar_view_week,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                     // Calendário
                     Card(
                       margin: const EdgeInsets.all(16),
                       child: SizedBox(
                         height: 400,
                         child: SfCalendar(
-                          view: _calendarView,
+                          view: CalendarView.month,
                           initialDisplayDate: _focusedDay,
                           initialSelectedDate: _selectedDay,
                           onSelectionChanged:
