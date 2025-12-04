@@ -3,8 +3,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-import '../models/prova.dart';
-import '../services/prova_service.dart';
+import '../domain/entities/prova.dart';
+import '../domain/entities/revisao.dart';
+import '../presentation/services/prova_service.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/prova_card.dart';
 import '../widgets/revisao_card.dart';
@@ -17,7 +18,7 @@ class ProvaDataSource extends CalendarDataSource {
               startTime: prova.dataProva,
               endTime: prova.dataProva.add(const Duration(hours: 1)),
               subject: prova.nome,
-              color: prova.cor,
+              color: Color(prova.cor),
               notes: prova.descricao,
             ))
         .toList();
@@ -62,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Prova> _provas = [];
   List<Revisao> _revisoes = [];
   bool _isLoading = true;
+  bool _isUpdating = false;
 
   @override
   void initState() {
@@ -80,18 +82,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _carregarDados() async {
-    setState(() => _isLoading = true);
+    if (_isUpdating) return; // Evita múltiplas chamadas simultâneas
+    _isUpdating = true;
+
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
     final provas = await ProvaService.carregarProvas();
-    final revisoes = _selectedDay != null
+    final List<Revisao> revisoes = _selectedDay != null
         ? await ProvaService.obterRevisoesPorData(_selectedDay!)
         : <Revisao>[];
 
-    setState(() {
-      _provas = provas;
-      _revisoes = revisoes;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _provas = provas;
+        _revisoes = revisoes;
+        _isLoading = false;
+        _isUpdating = false;
+      });
+    } else {
+      _isUpdating = false;
+    }
   }
 
   Future<void> _adicionarProva() async {
@@ -127,10 +139,13 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: () {
-              setState(() {
-                _focusedDay = DateTime.now();
-                _selectedDay = DateTime.now();
-              });
+              if (!_isUpdating) {
+                setState(() {
+                  _focusedDay = DateTime.now();
+                  _selectedDay = DateTime.now();
+                });
+                _carregarDados();
+              }
             },
           ),
         ],
@@ -153,26 +168,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           onSelectionChanged:
                               (CalendarSelectionDetails details) {
                             if (details.date != null) {
-                              WidgetsBinding.instance
-                                  .addPostFrameCallback((_) async {
-                                if (mounted) {
-                                  setState(() {
-                                    _selectedDay = details.date;
-                                    _focusedDay = details.date!;
-                                  });
-                                  await _carregarDados();
-                                }
-                              });
+                              final newDate = details.date!;
+                              // Só atualiza se a data realmente mudou
+                              if (!isSameDay(_selectedDay, newDate)) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) async {
+                                  if (mounted && !_isUpdating) {
+                                    setState(() {
+                                      _selectedDay = newDate;
+                                      _focusedDay = newDate;
+                                    });
+                                    await _carregarDados();
+                                  }
+                                });
+                              }
                             }
                           },
                           onViewChanged: (ViewChangedDetails details) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
-                                setState(() {
-                                  _focusedDay = details.visibleDates.first;
-                                });
-                              }
-                            });
+                            final newFocusedDay = details.visibleDates.first;
+                            // Só atualiza se o mês realmente mudou e não está atualizando
+                            if ((_focusedDay.year != newFocusedDay.year ||
+                                    _focusedDay.month != newFocusedDay.month) &&
+                                !_isUpdating) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted && !_isUpdating) {
+                                  setState(() {
+                                    _focusedDay = newFocusedDay;
+                                  });
+                                }
+                              });
+                            }
                           },
                           dataSource: ProvaDataSource(_provas),
                           monthViewSettings: const MonthViewSettings(
@@ -201,6 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'home_fab',
         onPressed: _adicionarProva,
         child: const Icon(Icons.add),
       ),

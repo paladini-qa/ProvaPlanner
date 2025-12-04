@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/prova.dart';
+import '../domain/entities/prova.dart';
 
 class ProvaCard extends StatelessWidget {
   final Prova prova;
@@ -24,12 +24,12 @@ class ProvaCard extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: prova.cor.withValues(alpha: 0.2),
+            color: Color(prova.cor).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             Icons.quiz,
-            color: prova.cor,
+            color: Color(prova.cor),
             size: 24,
           ),
         ),

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/entities/daily_goal.dart';
 import '../presentation/services/daily_goal_service.dart';
 import '../presentation/extensions/daily_goal_extension.dart';
-import '../services/prova_service.dart';
+import '../presentation/services/prova_service.dart';
 import '../services/goal_suggestion_service.dart';
 import '../services/gemini_service.dart';
 import '../config/env.dart';
@@ -587,6 +587,7 @@ class _DailyGoalsScreenState extends State<DailyGoalsScreen>
               child: Transform.rotate(
               angle: _fabRotationAnimation.value,
               child: FloatingActionButton(
+                heroTag: 'daily_goals_fab',
                 onPressed: _adicionarGoal,
                 child: const Icon(Icons.add),
               ),

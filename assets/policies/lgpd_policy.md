@@ -182,4 +182,3 @@ Esta política está na **versão 1.0.0**. Quando houver atualizações, você s
 ---
 
 **Ao aceitar esta política, você consente com o processamento dos seus dados pessoais conforme descrito acima, em conformidade com a LGPD.**
-

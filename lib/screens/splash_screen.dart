@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_icon.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/consent_service.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -56,11 +57,26 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // Verificar autenticação primeiro
+    // Limpar sessões inválidas antes de verificar autenticação
+    try {
+      await AuthService.clearInvalidSessions();
+    } catch (e) {
+      debugPrint('SplashScreen: Erro ao limpar sessões inválidas: $e');
+    }
+
+    // Verificar autenticação primeiro (validação completa no servidor)
     bool isAuthenticated = false;
     try {
-      isAuthenticated = AuthService.isAuthenticated;
+      // Verificar se há sessão local primeiro
+      if (AuthService.isAuthenticated) {
+        // Se houver sessão local, validar no servidor
+        isAuthenticated = await AuthService.isAuthenticatedAndValid();
+        debugPrint('SplashScreen: isAuthenticatedAndValid: $isAuthenticated');
+      } else {
+        debugPrint('SplashScreen: Nenhuma sessão local encontrada');
+      }
     } catch (e) {
+      debugPrint('SplashScreen: Erro ao verificar autenticação: $e');
       // Se Supabase não estiver configurado, continuar sem autenticação
       isAuthenticated = false;
     }
@@ -79,10 +95,13 @@ class _SplashScreenState extends State<SplashScreen>
     bool hasCompletedOnboarding = false;
     try {
       hasCompletedOnboarding = await AuthService.hasCompletedOnboarding();
+      debugPrint('SplashScreen: hasCompletedOnboarding do Supabase: $hasCompletedOnboarding');
     } catch (e) {
+      debugPrint('SplashScreen: Erro ao verificar onboarding no Supabase: $e');
       // Se não conseguir verificar no Supabase, usar SharedPreferences como fallback
       final prefs = await SharedPreferences.getInstance();
       hasCompletedOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+      debugPrint('SplashScreen: hasCompletedOnboarding do SharedPreferences: $hasCompletedOnboarding');
     }
 
     // Se for primeiro login, forçar onboarding
@@ -92,17 +111,11 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    // Se já completou onboarding, seguir o fluxo normal
-    final prefs = await SharedPreferences.getInstance();
-    final hasAcceptedPolicies = prefs.getBool('has_accepted_policies') ?? false;
-
-    if (!hasAcceptedPolicies) {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/policies');
-    } else {
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
-    }
+    // Se já completou onboarding, ir direto para home
+    // Não verificar políticas se onboarding já foi completado
+    if (!mounted) return;
+    debugPrint('SplashScreen: Onboarding completo, redirecionando para /home');
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override

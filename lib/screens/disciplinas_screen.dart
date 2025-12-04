@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/disciplina.dart';
-import '../services/disciplina_service.dart';
+import '../domain/entities/disciplina.dart';
+import '../presentation/services/disciplina_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import 'adicionar_disciplina_screen.dart';
@@ -158,6 +158,7 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
               ? _buildEmptyState()
               : _buildDisciplinasList(),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'disciplinas_fab',
         onPressed: _adicionarDisciplina,
         child: const Icon(Icons.add),
       ),
@@ -203,10 +204,10 @@ class _DisciplinasScreenState extends State<DisciplinasScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: disciplina.cor.withValues(alpha: 0.1),
+              backgroundColor: Color(disciplina.cor).withValues(alpha: 0.1),
               child: Icon(
                 Icons.school,
-                color: disciplina.cor,
+                color: Color(disciplina.cor),
               ),
             ),
             title: Text(

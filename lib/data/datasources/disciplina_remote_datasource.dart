@@ -1,21 +1,20 @@
 import '../../config/supabase_config.dart';
 import '../../services/auth_service.dart';
-import '../../data/models/daily_goal_dto.dart';
+import '../models/disciplina_dto.dart';
 
-abstract class DailyGoalRemoteDataSource {
-  Future<List<DailyGoalDto>> getAll();
-  Future<DailyGoalDto?> getById(String id);
-  Future<void> save(DailyGoalDto dto);
-  Future<void> update(DailyGoalDto dto);
+abstract class DisciplinaRemoteDataSource {
+  Future<List<DisciplinaDto>> getAll();
+  Future<DisciplinaDto?> getById(String id);
+  Future<void> save(DisciplinaDto dto);
+  Future<void> update(DisciplinaDto dto);
   Future<void> delete(String id);
-  Future<List<DailyGoalDto>> getByDate(DateTime date);
 }
 
-class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
-  static const String _tableName = 'goals';
+class DisciplinaRemoteDataSourceImpl implements DisciplinaRemoteDataSource {
+  static const String _tableName = 'classes';
 
   @override
-  Future<List<DailyGoalDto>> getAll() async {
+  Future<List<DisciplinaDto>> getAll() async {
     try {
       final userId = AuthService.currentUserId;
       if (userId == null) {
@@ -27,7 +26,7 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
           .select()
           .eq('user_id', userId)
           .isFilter('deleted_at', null)
-          .order('data', ascending: true);
+          .order('"dataCriacao"', ascending: false);
 
       final List<dynamic> data = response as List<dynamic>;
       if (data.isEmpty) {
@@ -35,15 +34,15 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
       }
 
       return data
-          .map((json) => DailyGoalDto.fromJson(json as Map<String, dynamic>))
+          .map((json) => DisciplinaDto.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('Erro ao buscar metas diárias: $e');
+      throw Exception('Erro ao buscar disciplinas: $e');
     }
   }
 
   @override
-  Future<DailyGoalDto?> getById(String id) async {
+  Future<DisciplinaDto?> getById(String id) async {
     try {
       final userId = AuthService.currentUserId;
       if (userId == null) {
@@ -54,22 +53,22 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
           .from(_tableName)
           .select()
           .eq('id', id)
-          .eq('user_id', userId)
-          .isFilter('deleted_at', null)
+          .eq('user_id', userId) // Filtrar por user_id também
+          .isFilter('deleted_at', null) // Excluir deletados
           .maybeSingle();
 
       if (response == null) {
         return null;
       }
 
-      return DailyGoalDto.fromJson(response);
+      return DisciplinaDto.fromJson(response);
     } catch (e) {
-      throw Exception('Erro ao buscar meta diária por ID: $e');
+      throw Exception('Erro ao buscar disciplina por ID: $e');
     }
   }
 
   @override
-  Future<void> save(DailyGoalDto dto) async {
+  Future<void> save(DisciplinaDto dto) async {
     try {
       final userId = AuthService.currentUserId;
       if (userId == null) {
@@ -80,12 +79,12 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
       json['user_id'] = userId; // Garantir que user_id está presente
       await SupabaseConfig.client.from(_tableName).insert(json);
     } catch (e) {
-      throw Exception('Erro ao salvar meta diária: $e');
+      throw Exception('Erro ao salvar disciplina: $e');
     }
   }
 
   @override
-  Future<void> update(DailyGoalDto dto) async {
+  Future<void> update(DisciplinaDto dto) async {
     try {
       final userId = AuthService.currentUserId;
       if (userId == null) {
@@ -100,7 +99,7 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
           .eq('id', dto.id)
           .eq('user_id', userId); // Garantir que só atualiza se for do usuário
     } catch (e) {
-      throw Exception('Erro ao atualizar meta diária: $e');
+      throw Exception('Erro ao atualizar disciplina: $e');
     }
   }
 
@@ -122,40 +121,7 @@ class DailyGoalRemoteDataSourceImpl implements DailyGoalRemoteDataSource {
           .eq('id', id)
           .eq('user_id', userId); // Garantir que só deleta se for do usuário
     } catch (e) {
-      throw Exception('Erro ao deletar meta diária: $e');
-    }
-  }
-
-  @override
-  Future<List<DailyGoalDto>> getByDate(DateTime date) async {
-    try {
-      final userId = AuthService.currentUserId;
-      if (userId == null) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      final startOfDay = DateTime(date.year, date.month, date.day);
-      final endOfDay = startOfDay.add(const Duration(days: 1));
-
-      final response = await SupabaseConfig.client
-          .from(_tableName)
-          .select()
-          .eq('user_id', userId)
-          .isFilter('deleted_at', null)
-          .gte('data', startOfDay.toIso8601String())
-          .lt('data', endOfDay.toIso8601String())
-          .order('data', ascending: true);
-
-      final List<dynamic> data = response as List<dynamic>;
-      if (data.isEmpty) {
-        return [];
-      }
-
-      return data
-          .map((json) => DailyGoalDto.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      throw Exception('Erro ao buscar metas diárias por data: $e');
+      throw Exception('Erro ao deletar disciplina: $e');
     }
   }
 }

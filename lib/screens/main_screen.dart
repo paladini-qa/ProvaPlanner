@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/tutorial_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/bottom_navigation.dart';
 import '../features/disciplinas/presentation/pages/disciplinas_list_page.dart';
 import '../features/alunos/presentation/pages/alunos_list_page.dart';
@@ -43,6 +44,16 @@ class _MainScreenState extends State<MainScreen> {
 
     if (!mounted) return;
 
+    // Verificar se o onboarding foi completado - se sim, não mostrar popups
+    try {
+      final hasCompletedOnboarding = await AuthService.hasCompletedOnboarding();
+      if (hasCompletedOnboarding) {
+        return; // Não mostrar popups se onboarding foi completado
+      }
+    } catch (e) {
+      // Se falhar, continuar com a verificação normal
+    }
+
     // Verificar se é a primeira vez que abre o app
     final isFirstLaunch = await TutorialService.isFirstLaunch();
     if (isFirstLaunch) {
@@ -83,6 +94,16 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _verificarTutorialAba(int index) async {
     if (index < 0 || index >= _tabNames.length) return;
+
+    // Verificar se o onboarding foi completado - se sim, não mostrar popups
+    try {
+      final hasCompletedOnboarding = await AuthService.hasCompletedOnboarding();
+      if (hasCompletedOnboarding) {
+        return; // Não mostrar popups se onboarding foi completado
+      }
+    } catch (e) {
+      // Se falhar, continuar com a verificação normal
+    }
 
     final tabName = _tabNames[index];
     final hasVisited = await TutorialService.hasVisitedTab(tabName);

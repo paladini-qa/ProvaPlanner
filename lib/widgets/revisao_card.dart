@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/prova.dart';
+import '../domain/entities/revisao.dart';
 
 class RevisaoCard extends StatelessWidget {
   final Revisao revisao;

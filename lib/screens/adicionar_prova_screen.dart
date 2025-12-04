@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/prova.dart';
-import '../models/disciplina.dart';
-import '../services/prova_service.dart';
-import '../services/disciplina_service.dart';
+import '../domain/entities/prova.dart';
+import '../domain/entities/disciplina.dart';
+import '../presentation/services/prova_service.dart';
+import '../presentation/services/disciplina_service.dart';
 
 class AdicionarProvaScreen extends StatefulWidget {
   const AdicionarProvaScreen({super.key});
@@ -212,21 +212,21 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _disciplinaSelecionada!.cor.withValues(alpha: 0.1),
+                  color: Color(_disciplinaSelecionada!.cor).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _disciplinaSelecionada!.cor.withValues(alpha: 0.3),
+                    color: Color(_disciplinaSelecionada!.cor).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: _disciplinaSelecionada!.cor.withValues(alpha: 0.2),
+                      backgroundColor: Color(_disciplinaSelecionada!.cor).withValues(alpha: 0.2),
                       child: Icon(
                         Icons.school,
                         size: 20,
-                        color: _disciplinaSelecionada!.cor,
+                        color: Color(_disciplinaSelecionada!.cor),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -238,7 +238,7 @@ class _AdicionarProvaScreenState extends State<AdicionarProvaScreen> {
                             _disciplinaSelecionada!.nome,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: _disciplinaSelecionada!.cor,
+                              color: Color(_disciplinaSelecionada!.cor),
                               fontSize: 16,
                             ),
                           ),

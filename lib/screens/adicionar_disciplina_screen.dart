@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/disciplina.dart';
-import '../services/disciplina_service.dart';
+import '../domain/entities/disciplina.dart';
+import '../presentation/services/disciplina_service.dart';
 import '../theme/app_theme.dart';
 
 class AdicionarDisciplinaScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class _AdicionarDisciplinaScreenState extends State<AdicionarDisciplinaScreen> {
   final _descricaoController = TextEditingController();
   
   String _periodoSelecionado = '1º Período';
-  Color _corSelecionada = AppTheme.indigo;
+  int _corSelecionada = AppTheme.indigo.value;
   bool _isLoading = false;
 
   final List<String> _periodos = [
@@ -33,15 +33,15 @@ class _AdicionarDisciplinaScreenState extends State<AdicionarDisciplinaScreen> {
     '8º Período',
   ];
 
-  final List<Color> _cores = [
-    AppTheme.indigo,
-    AppTheme.amber,
-    Colors.red,
-    Colors.green,
-    Colors.purple,
-    Colors.orange,
-    Colors.teal,
-    Colors.pink,
+  final List<int> _cores = [
+    AppTheme.indigo.value,
+    AppTheme.amber.value,
+    Colors.red.value,
+    Colors.green.value,
+    Colors.purple.value,
+    Colors.orange.value,
+    Colors.teal.value,
+    Colors.pink.value,
   ];
 
   @override
@@ -231,7 +231,7 @@ class _AdicionarDisciplinaScreenState extends State<AdicionarDisciplinaScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: cor,
+                        color: Color(cor),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: isSelected ? Colors.black : Colors.transparent,

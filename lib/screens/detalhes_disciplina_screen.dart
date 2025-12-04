@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../models/disciplina.dart';
-import '../models/prova.dart';
-import '../services/prova_service.dart';
+import '../domain/entities/disciplina.dart';
+import '../domain/entities/prova.dart';
+import '../presentation/services/prova_service.dart';
 
 class DetalhesDisciplinaScreen extends StatefulWidget {
   final Disciplina disciplina;
@@ -47,7 +47,7 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.disciplina.nome),
-        backgroundColor: widget.disciplina.cor,
+        backgroundColor: Color(widget.disciplina.cor),
         foregroundColor: Colors.white,
       ),
       body: _isLoading
@@ -67,11 +67,11 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                           Row(
                             children: [
                               CircleAvatar(
-                                backgroundColor: widget.disciplina.cor
+                                backgroundColor: Color(widget.disciplina.cor)
                                     .withValues(alpha: 0.1),
                                 child: Icon(
                                   Icons.school,
-                                  color: widget.disciplina.cor,
+                                  color: Color(widget.disciplina.cor),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -194,14 +194,14 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
       children: [
         Icon(
           icon,
-          color: widget.disciplina.cor,
+          color: Color(widget.disciplina.cor),
           size: 32,
         ),
         const SizedBox(height: 8),
         Text(
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: widget.disciplina.cor,
+                color: Color(widget.disciplina.cor),
                 fontWeight: FontWeight.bold,
               ),
         ),
@@ -263,7 +263,7 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                   ? Colors.green.withValues(alpha: 0.1)
                   : isProxima
                       ? Colors.orange.withValues(alpha: 0.1)
-                      : widget.disciplina.cor.withValues(alpha: 0.1),
+                      : Color(widget.disciplina.cor).withValues(alpha: 0.1),
               child: Icon(
                 isConcluida
                     ? Icons.check_circle
@@ -274,7 +274,7 @@ class _DetalhesDisciplinaScreenState extends State<DetalhesDisciplinaScreen> {
                     ? Colors.green
                     : isProxima
                         ? Colors.orange
-                        : widget.disciplina.cor,
+                        : Color(widget.disciplina.cor),
               ),
             ),
             title: Text(

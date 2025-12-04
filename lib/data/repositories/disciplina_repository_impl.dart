@@ -1,45 +1,46 @@
-import '../../domain/entities/aluno.dart';
-import '../../domain/repositories/aluno_repository.dart';
-import '../datasources/aluno_local_datasource.dart';
-import '../datasources/aluno_remote_datasource.dart';
-import '../mappers/aluno_mapper.dart';
-import '../models/aluno_dto.dart';
+import 'package:flutter/foundation.dart';
+import '../../domain/entities/disciplina.dart';
+import '../../domain/repositories/disciplina_repository.dart';
+import '../datasources/disciplina_local_datasource.dart';
+import '../datasources/disciplina_remote_datasource.dart';
+import '../mappers/disciplina_mapper.dart';
+import '../models/disciplina_dto.dart';
 
-class AlunoRepositoryImpl implements AlunoRepository {
-  final AlunoLocalDataSource localDataSource;
-  final AlunoRemoteDataSource? remoteDataSource;
+class DisciplinaRepositoryImpl implements DisciplinaRepository {
+  final DisciplinaLocalDataSource localDataSource;
+  final DisciplinaRemoteDataSource? remoteDataSource;
 
-  AlunoRepositoryImpl(
+  DisciplinaRepositoryImpl(
     this.localDataSource, {
     this.remoteDataSource,
   });
 
   @override
-  Future<List<Aluno>> getAll() async {
+  Future<List<Disciplina>> getAll() async {
     try {
       final localDtos = await localDataSource.getAll();
-
+      
       // Tenta buscar do remoto e sincronizar
       if (remoteDataSource != null) {
         try {
           final remoteDtos = await remoteDataSource!.getAll();
-
-          // Sincroniza remoto -> local
+          
+          // Sincroniza remoto -> local (igual a metas)
           await localDataSource.saveAll(remoteDtos);
-
+          
           // Sincroniza local -> remoto (dados criados offline)
           await _syncLocalToRemote(localDtos, remoteDtos);
-
+          
           return remoteDtos
-              .map((dto) => AlunoMapper.toEntity(dto))
+              .map((dto) => DisciplinaMapper.toEntity(dto))
               .toList();
         } catch (e) {
           // Se falhar, usa o local
         }
       }
-
+      
       // Fallback para local
-      return localDtos.map((dto) => AlunoMapper.toEntity(dto)).toList();
+      return localDtos.map((dto) => DisciplinaMapper.toEntity(dto)).toList();
     } catch (e) {
       // Último fallback: retorna lista vazia
       return [];
@@ -48,8 +49,8 @@ class AlunoRepositoryImpl implements AlunoRepository {
 
   /// Sincroniza dados locais que não estão no remoto
   Future<void> _syncLocalToRemote(
-    List<AlunoDto> localDtos,
-    List<AlunoDto> remoteDtos,
+    List<DisciplinaDto> localDtos,
+    List<DisciplinaDto> remoteDtos,
   ) async {
     if (remoteDataSource == null) return;
 
@@ -76,23 +77,23 @@ class AlunoRepositoryImpl implements AlunoRepository {
   }
 
   @override
-  Future<Aluno?> getById(String id) async {
-    final alunos = await getAll();
+  Future<Disciplina?> getById(String id) async {
+    final disciplinas = await getAll();
     try {
-      return alunos.firstWhere((a) => a.id == id);
+      return disciplinas.firstWhere((d) => d.id == id);
     } catch (e) {
       return null;
     }
   }
 
   @override
-  Future<void> save(Aluno aluno) async {
-    final dto = AlunoMapper.toDto(aluno);
+  Future<void> save(Disciplina disciplina) async {
+    final dto = DisciplinaMapper.toDto(disciplina);
 
     // Salva localmente primeiro (offline-first)
-    final alunos = await localDataSource.getAll();
-    alunos.add(dto);
-    await localDataSource.saveAll(alunos);
+    final disciplinas = await localDataSource.getAll();
+    disciplinas.add(dto);
+    await localDataSource.saveAll(disciplinas);
 
     // Tenta salvar no remoto (sincronização em background)
     if (remoteDataSource != null) {
@@ -105,15 +106,15 @@ class AlunoRepositoryImpl implements AlunoRepository {
   }
 
   @override
-  Future<void> update(Aluno aluno) async {
-    final dto = AlunoMapper.toDto(aluno);
+  Future<void> update(Disciplina disciplina) async {
+    final dto = DisciplinaMapper.toDto(disciplina);
 
     // Atualiza localmente primeiro
-    final alunos = await localDataSource.getAll();
-    final index = alunos.indexWhere((a) => a.id == aluno.id);
+    final disciplinas = await localDataSource.getAll();
+    final index = disciplinas.indexWhere((d) => d.id == disciplina.id);
     if (index != -1) {
-      alunos[index] = dto;
-      await localDataSource.saveAll(alunos);
+      disciplinas[index] = dto;
+      await localDataSource.saveAll(disciplinas);
     }
 
     // Tenta atualizar no remoto (sincronização em background)
@@ -129,9 +130,9 @@ class AlunoRepositoryImpl implements AlunoRepository {
   @override
   Future<void> delete(String id) async {
     // Deleta localmente primeiro
-    final alunos = await localDataSource.getAll();
-    alunos.removeWhere((a) => a.id == id);
-    await localDataSource.saveAll(alunos);
+    final disciplinas = await localDataSource.getAll();
+    disciplinas.removeWhere((d) => d.id == id);
+    await localDataSource.saveAll(disciplinas);
 
     // Tenta deletar no remoto (sincronização em background)
     if (remoteDataSource != null) {

@@ -1,31 +1,28 @@
-class DailyGoalDto {
+class TarefaDto {
   final String id;
   final String titulo;
   final String descricao;
-  final String data;
   final bool concluida;
-  final String prioridade;
-  final String? deletedAt; // ISO8601 string ou null para soft delete
+  final String dataCriacao; // ISO8601 string
+  final String dataConclusao; // ISO8601 string
 
-  DailyGoalDto({
+  TarefaDto({
     required this.id,
     required this.titulo,
     required this.descricao,
-    required this.data,
     required this.concluida,
-    required this.prioridade,
-    this.deletedAt,
+    required this.dataCriacao,
+    required this.dataConclusao,
   });
 
-  factory DailyGoalDto.fromJson(Map<String, dynamic> json) {
-    return DailyGoalDto(
+  factory TarefaDto.fromJson(Map<String, dynamic> json) {
+    return TarefaDto(
       id: json['id'] as String,
       titulo: json['titulo'] as String,
       descricao: json['descricao'] as String,
-      data: json['data'] as String,
       concluida: (json['concluida'] as bool?) ?? false,
-      prioridade: (json['prioridade'] as String?) ?? 'media',
-      deletedAt: json['deleted_at'] as String?,
+      dataCriacao: json['dataCriacao'] as String,
+      dataConclusao: json['dataConclusao'] as String,
     );
   }
 
@@ -34,9 +31,9 @@ class DailyGoalDto {
       'id': id,
       'titulo': titulo,
       'descricao': descricao,
-      'data': data,
       'concluida': concluida,
-      'prioridade': prioridade,
+      'dataCriacao': dataCriacao,
+      'dataConclusao': dataConclusao,
     };
   }
 }

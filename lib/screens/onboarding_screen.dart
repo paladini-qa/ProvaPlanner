@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/animated_page_indicator.dart';
 import '../services/auth_service.dart';
+import '../services/consent_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -96,7 +97,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_onboarding', true);
-    await prefs.setBool('has_accepted_policies', true);
+    
+    // Aceitar políticas usando o ConsentService para garantir versionamento correto
+    try {
+      await ConsentService.acceptPolicies(
+        acceptedTerms: true,
+        acceptedPrivacy: true,
+        acceptedDataProcessing: true,
+        acceptedNotifications: false, // Usuário pode configurar depois
+      );
+    } catch (e) {
+      // Se falhar, salvar diretamente como fallback
+      await prefs.setBool('has_accepted_policies', true);
+    }
     
     // Marcar onboarding como completo no Supabase
     try {

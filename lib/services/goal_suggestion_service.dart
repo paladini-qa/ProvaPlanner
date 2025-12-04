@@ -1,7 +1,8 @@
-import '../models/prova.dart';
+import '../domain/entities/prova.dart';
+import '../domain/entities/revisao.dart';
 import '../domain/entities/daily_goal.dart';
 import '../domain/entities/prioridade_meta.dart';
-import '../services/prova_service.dart';
+import '../presentation/services/prova_service.dart';
 import '../config/env.dart';
 import 'ai_service.dart';
 import 'gemini_service.dart';
@@ -41,7 +42,7 @@ class GoalSuggestionService {
       return '${p.nome} (${p.disciplinaNome}) - $diasRestantes dia(s)';
     }).toList();
 
-    final revisoesTexto = todasRevisoes.map((r) {
+    final revisoesTexto = todasRevisoes.map<String>((r) {
       return 'Revisão: ${r.descricao}';
     }).toList();
 
