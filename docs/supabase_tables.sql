@@ -20,6 +20,11 @@ CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas antigas se existirem (para evitar conflitos)
+DROP POLICY IF EXISTS "Usuários podem ver apenas seu próprio perfil" ON profiles;
+DROP POLICY IF EXISTS "Usuários podem atualizar apenas seu próprio perfil" ON profiles;
+DROP POLICY IF EXISTS "Usuários podem inserir apenas seu próprio perfil" ON profiles;
+
 -- Política: Usuários podem ver apenas seu próprio perfil
 CREATE POLICY "Usuários podem ver apenas seu próprio perfil"
   ON profiles
@@ -30,7 +35,8 @@ CREATE POLICY "Usuários podem ver apenas seu próprio perfil"
 CREATE POLICY "Usuários podem atualizar apenas seu próprio perfil"
   ON profiles
   FOR UPDATE
-  USING (auth.uid() = id);
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
 -- Política: Usuários podem inserir apenas seu próprio perfil
 CREATE POLICY "Usuários podem inserir apenas seu próprio perfil"
@@ -88,6 +94,12 @@ CREATE INDEX IF NOT EXISTS idx_classes_user_id ON classes(user_id);
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas antigas se existirem (para evitar conflitos)
+DROP POLICY IF EXISTS "Usuários podem ver apenas suas próprias classes" ON classes;
+DROP POLICY IF EXISTS "Usuários podem inserir apenas suas próprias classes" ON classes;
+DROP POLICY IF EXISTS "Usuários podem atualizar apenas suas próprias classes" ON classes;
+DROP POLICY IF EXISTS "Usuários podem deletar apenas suas próprias classes" ON classes;
+
 -- Política para permitir acesso apenas aos próprios dados (excluindo deletados)
 CREATE POLICY "Usuários podem ver apenas suas próprias classes"
   ON classes
@@ -118,9 +130,9 @@ CREATE TABLE IF NOT EXISTS exams (
   id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   nome TEXT NOT NULL,
-  disciplinaId TEXT NOT NULL,
-  disciplinaNome TEXT NOT NULL,
-  dataProva TEXT NOT NULL,
+  "disciplinaId" TEXT NOT NULL,
+  "disciplinaNome" TEXT NOT NULL,
+  "dataProva" TEXT NOT NULL,
   descricao TEXT NOT NULL DEFAULT '',
   revisoes JSONB NOT NULL DEFAULT '[]'::jsonb,
   cor BIGINT NOT NULL,
@@ -130,12 +142,18 @@ CREATE TABLE IF NOT EXISTS exams (
 );
 
 -- Índices para melhorar performance
-CREATE INDEX IF NOT EXISTS idx_exams_disciplinaId ON exams(disciplinaId);
-CREATE INDEX IF NOT EXISTS idx_exams_dataProva ON exams(dataProva);
+CREATE INDEX IF NOT EXISTS idx_exams_disciplinaId ON exams("disciplinaId");
+CREATE INDEX IF NOT EXISTS idx_exams_dataProva ON exams("dataProva");
 CREATE INDEX IF NOT EXISTS idx_exams_user_id ON exams(user_id);
 
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE exams ENABLE ROW LEVEL SECURITY;
+
+-- Remover políticas antigas se existirem (para evitar conflitos)
+DROP POLICY IF EXISTS "Usuários podem ver apenas suas próprias exams" ON exams;
+DROP POLICY IF EXISTS "Usuários podem inserir apenas suas próprias exams" ON exams;
+DROP POLICY IF EXISTS "Usuários podem atualizar apenas suas próprias exams" ON exams;
+DROP POLICY IF EXISTS "Usuários podem deletar apenas suas próprias exams" ON exams;
 
 -- Política para permitir acesso apenas aos próprios dados (excluindo deletados)
 CREATE POLICY "Usuários podem ver apenas suas próprias exams"
@@ -182,6 +200,12 @@ CREATE INDEX IF NOT EXISTS idx_goals_user_id ON goals(user_id);
 -- Habilitar Row Level Security (RLS)
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas antigas se existirem (para evitar conflitos)
+DROP POLICY IF EXISTS "Usuários podem ver apenas suas próprias goals" ON goals;
+DROP POLICY IF EXISTS "Usuários podem inserir apenas suas próprias goals" ON goals;
+DROP POLICY IF EXISTS "Usuários podem atualizar apenas suas próprias goals" ON goals;
+DROP POLICY IF EXISTS "Usuários podem deletar apenas suas próprias goals" ON goals;
+
 -- Política para permitir acesso apenas aos próprios dados (excluindo deletados)
 CREATE POLICY "Usuários podem ver apenas suas próprias goals"
   ON goals
@@ -214,3 +238,7 @@ CREATE POLICY "Usuários podem deletar apenas suas próprias goals"
 -- 5. Soft delete implementado através da coluna deleted_at
 -- 6. As políticas garantem que cada usuário só vê e modifica seus próprios dados
 -- 7. O trigger handle_new_user cria automaticamente um perfil ao registrar um novo usuário
+-- 8. Colunas com camelCase (dataCriacao, disciplinaId, disciplinaNome, dataProva) usam aspas duplas
+--    para manter o case correto no PostgreSQL (sem aspas, são convertidas para lowercase)
+-- 9. Todas as políticas de UPDATE incluem WITH CHECK para permitir soft delete e outras atualizações
+-- 10. O script usa DROP POLICY IF EXISTS antes de criar políticas para evitar conflitos
