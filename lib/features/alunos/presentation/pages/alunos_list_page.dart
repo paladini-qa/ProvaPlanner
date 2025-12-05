@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/app_icon.dart';
+import '../../../../presentation/widgets/app_icon.dart';
 import '../dialogs/aluno_actions_dialog.dart';
 import '../dialogs/aluno_edit_dialog.dart';
 import '../dialogs/aluno_remove_dialog.dart';

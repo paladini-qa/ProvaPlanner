@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Serviço para gerenciar consentimento e versionamento de políticas
@@ -16,33 +15,25 @@ class ConsentService {
   /// Verificar se o usuário aceitou as políticas
   static Future<bool> hasAcceptedPolicies() async {
     final prefs = await SharedPreferences.getInstance();
-    final result = prefs.getBool(_keyHasAcceptedPolicies) ?? false;
-    debugPrint('ConsentService.hasAcceptedPolicies: $result');
-    return result;
+    return prefs.getBool(_keyHasAcceptedPolicies) ?? false;
   }
 
   /// Verificar se a versão aceita é a atual
   static Future<bool> isPolicyVersionCurrent() async {
     final prefs = await SharedPreferences.getInstance();
     final acceptedVersion = prefs.getString(_keyAcceptedVersion);
-    final result = acceptedVersion == currentPolicyVersion;
-    debugPrint('ConsentService.isPolicyVersionCurrent: acceptedVersion=$acceptedVersion, currentVersion=$currentPolicyVersion, result=$result');
-    return result;
+    return acceptedVersion == currentPolicyVersion;
   }
 
   /// Verificar se precisa aceitar novas políticas
   static Future<bool> needsPolicyAcceptance() async {
     final hasAccepted = await hasAcceptedPolicies();
-    debugPrint('ConsentService.needsPolicyAcceptance: hasAccepted=$hasAccepted');
     if (!hasAccepted) {
-      debugPrint('ConsentService.needsPolicyAcceptance: Retornando true (não aceitou)');
       return true;
     }
 
     final isCurrent = await isPolicyVersionCurrent();
-    final result = !isCurrent;
-    debugPrint('ConsentService.needsPolicyAcceptance: isCurrent=$isCurrent, result=$result');
-    return result;
+    return !isCurrent;
   }
 
   /// Aceitar políticas com versionamento
@@ -72,10 +63,6 @@ class ConsentService {
     await prefs.setInt(_keyAcceptedTimestamp, DateTime.now().millisecondsSinceEpoch);
     await prefs.setBool('notifications_enabled', acceptedNotifications);
     await prefs.setBool(_keyConsentRevoked, false);
-    
-    debugPrint('ConsentService.acceptPolicies: Políticas aceitas e salvas');
-    debugPrint('ConsentService.acceptPolicies: has_accepted_policies=${prefs.getBool(_keyHasAcceptedPolicies)}');
-    debugPrint('ConsentService.acceptPolicies: accepted_version=${prefs.getString(_keyAcceptedVersion)}');
   }
 
   /// Revogar consentimento

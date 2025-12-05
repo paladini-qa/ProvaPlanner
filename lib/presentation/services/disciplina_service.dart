@@ -4,8 +4,6 @@ import '../../data/repositories/disciplina_repository_impl.dart';
 import '../../data/datasources/disciplina_local_datasource.dart';
 import '../../data/datasources/disciplina_remote_datasource.dart';
 import '../../config/supabase_config.dart';
-import '../../data/mappers/disciplina_mapper.dart';
-import '../../data/models/disciplina_dto.dart';
 
 /// Service wrapper para facilitar o uso dos repositories
 /// Mantém interface estática para compatibilidade com código existente

@@ -1,8 +1,6 @@
 import '../../domain/entities/prova.dart';
-import '../../domain/entities/revisao.dart';
 import '../../services/auth_service.dart';
 import '../models/prova_dto.dart';
-import '../models/revisao_dto.dart';
 import 'revisao_mapper.dart';
 
 class ProvaMapper {

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../../domain/entities/disciplina.dart';
 import '../../domain/repositories/disciplina_repository.dart';
 import '../datasources/disciplina_local_datasource.dart';

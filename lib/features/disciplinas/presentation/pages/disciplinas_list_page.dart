@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/app_icon.dart';
+import '../../../../presentation/widgets/app_icon.dart';
 import '../dialogs/disciplina_actions_dialog.dart';
 import '../dialogs/disciplina_edit_dialog.dart';
 import '../dialogs/disciplina_remove_dialog.dart';

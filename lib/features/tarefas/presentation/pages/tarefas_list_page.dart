@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/app_icon.dart';
+import '../../../../presentation/widgets/app_icon.dart';
 import '../dialogs/tarefa_actions_dialog.dart';
 import '../dialogs/tarefa_edit_dialog.dart';
 import '../dialogs/tarefa_remove_dialog.dart';

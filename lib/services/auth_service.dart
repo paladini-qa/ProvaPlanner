@@ -23,7 +23,6 @@ class AuthService {
       // Se o token expirou ou é inválido, o usuário não está autenticado
       return user.id.isNotEmpty;
     } catch (e) {
-      debugPrint('AuthService: Erro ao verificar autenticação: $e');
       return false;
     }
   }
@@ -40,7 +39,6 @@ class AuthService {
       try {
         final session = _client.auth.currentSession;
         if (session == null) {
-          debugPrint('AuthService: Sessão não encontrada, usuário não autenticado');
           return false;
         }
 
@@ -48,7 +46,6 @@ class AuthService {
         if (session.expiresAt != null) {
           final expiresAt = DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 1000);
           if (expiresAt.isBefore(DateTime.now())) {
-            debugPrint('AuthService: Token expirado, fazendo logout');
             await signOut();
             return false;
           }
@@ -63,16 +60,13 @@ class AuthService {
               .maybeSingle();
           return true;
         } catch (e) {
-          debugPrint('AuthService: Erro ao verificar perfil do usuário: $e');
           // Se não conseguir verificar o perfil, assumir que não está autenticado
           return false;
         }
       } catch (e) {
-        debugPrint('AuthService: Erro ao verificar sessão: $e');
         return false;
       }
     } catch (e) {
-      debugPrint('AuthService: Erro ao verificar autenticação válida: $e');
       return false;
     }
   }
@@ -102,17 +96,12 @@ class AuthService {
     required String password,
   }) async {
     try {
-      debugPrint('AuthService: Tentando fazer login para email: ${email.trim()}');
-      
       final response = await _client.auth.signInWithPassword(
         email: email.trim(),
         password: password,
       );
 
-      debugPrint('AuthService: Resposta do signIn - user: ${response.user?.id}, session: ${response.session?.accessToken != null}');
-
       if (response.user == null) {
-        debugPrint('AuthService: Erro - response.user é null');
         throw Exception('Falha ao fazer login');
       }
 
@@ -125,8 +114,6 @@ class AuthService {
             .maybeSingle();
         
         if (profile == null) {
-          debugPrint('AuthService: Perfil não encontrado para o usuário, criando perfil...');
-          
           // Criar perfil automaticamente se não existir
           try {
             await _client.from('profiles').insert({
@@ -137,29 +124,20 @@ class AuthService {
               'created_at': DateTime.now().toIso8601String(),
               'updated_at': DateTime.now().toIso8601String(),
             });
-            debugPrint('AuthService: Perfil criado com sucesso para usuário: ${response.user!.id}');
           } catch (e) {
-            debugPrint('AuthService: Erro ao criar perfil: $e');
             // Se falhar ao criar perfil, ainda permitir login (o trigger pode criar depois)
             // Não fazer logout, apenas logar o erro
           }
-        } else {
-          debugPrint('AuthService: Perfil encontrado para usuário: ${response.user!.id}');
         }
-        
-        debugPrint('AuthService: Login bem-sucedido para usuário: ${response.user!.id}');
       } catch (e) {
-        debugPrint('AuthService: Erro ao verificar/criar perfil após login: $e');
         // Não fazer logout - permitir login mesmo se houver problema com perfil
         // O perfil pode ser criado depois pelo trigger ou manualmente
       }
 
       return response.user!;
     } on AuthException catch (e) {
-      debugPrint('AuthService: AuthException no login - statusCode: ${e.statusCode}, message: ${e.message}');
       throw _handleAuthException(e);
     } catch (e) {
-      debugPrint('AuthService: Exception no login: $e');
       throw Exception('Erro ao fazer login: ${e.toString()}');
     }
   }
@@ -171,22 +149,15 @@ class AuthService {
     String? name,
   }) async {
     try {
-      debugPrint('AuthService: Tentando criar conta para email: ${email.trim()}');
-      
       final response = await _client.auth.signUp(
         email: email.trim(),
         password: password,
         data: name != null ? {'name': name} : null,
       );
 
-      debugPrint('AuthService: Resposta do signUp - user: ${response.user?.id}, session: ${response.session?.accessToken != null}');
-
       if (response.user == null) {
-        debugPrint('AuthService: Erro - response.user é null');
         throw Exception('Falha ao criar conta');
       }
-
-      debugPrint('AuthService: Usuário criado com sucesso. ID: ${response.user!.id}');
 
       // O trigger do Supabase cria o perfil automaticamente
       // Aguardar um pouco e atualizar o perfil com o nome se fornecido
@@ -194,7 +165,6 @@ class AuthService {
           response.user!.id.isNotEmpty &&
           name != null) {
         // Aguardar o trigger criar o perfil
-        debugPrint('AuthService: Aguardando trigger criar perfil...');
         await Future<void>.delayed(const Duration(milliseconds: 1000));
 
         try {
@@ -202,20 +172,15 @@ class AuthService {
             userId: response.user!.id,
             name: name,
           );
-          debugPrint('AuthService: Nome do perfil atualizado com sucesso');
         } catch (e) {
           // Se falhar, não é crítico - o perfil já foi criado pelo trigger
-          debugPrint('AuthService: Aviso - Não foi possível atualizar nome do perfil: $e');
         }
       }
 
       return response.user!;
     } on AuthException catch (e) {
-      debugPrint('AuthService: AuthException - statusCode: ${e.statusCode}, message: ${e.message}');
       throw _handleAuthException(e);
     } catch (e, stackTrace) {
-      debugPrint('AuthService: Exception ao criar conta: $e');
-      debugPrint('AuthService: StackTrace: $stackTrace');
       throw Exception('Erro ao criar conta: ${e.toString()}');
     }
   }
@@ -248,11 +213,8 @@ class AuthService {
   /// Faz logout
   static Future<void> signOut() async {
     try {
-      debugPrint('AuthService: Fazendo logout...');
       await _client.auth.signOut();
-      debugPrint('AuthService: Logout realizado com sucesso');
     } catch (e) {
-      debugPrint('AuthService: Erro ao fazer logout: $e');
       throw Exception('Erro ao fazer logout: ${e.toString()}');
     }
   }
@@ -260,24 +222,17 @@ class AuthService {
   /// Limpa sessões inválidas (útil para limpar cache local)
   static Future<void> clearInvalidSessions() async {
     try {
-      debugPrint('AuthService: Verificando e limpando sessões inválidas...');
-      
       final user = _client.auth.currentUser;
       if (user == null) {
-        debugPrint('AuthService: Nenhuma sessão local encontrada');
         return;
       }
 
       // Verificar se a sessão ainda é válida
       final isValid = await isAuthenticatedAndValid();
       if (!isValid) {
-        debugPrint('AuthService: Sessão inválida detectada, fazendo logout');
         await signOut();
-      } else {
-        debugPrint('AuthService: Sessão válida');
       }
     } catch (e) {
-      debugPrint('AuthService: Erro ao limpar sessões inválidas: $e');
       // Se houver erro, fazer logout para garantir que não há sessão inválida
       try {
         await signOut();
@@ -305,11 +260,8 @@ class AuthService {
     try {
       final userId = currentUserId;
       if (userId == null) {
-        debugPrint('hasCompletedOnboarding: userId é null');
         return false;
       }
-
-      debugPrint('hasCompletedOnboarding: Verificando para userId: $userId');
 
       // Tentar método 1: Query direta
       try {
@@ -319,51 +271,41 @@ class AuthService {
             .eq('id', userId)
             .single();
 
-        debugPrint('hasCompletedOnboarding: Resposta do Supabase: $response');
-
         if (response != null && response.isNotEmpty) {
           final onboardingCompleted = response['onboarding_completed'];
-          debugPrint('hasCompletedOnboarding: Valor bruto: $onboardingCompleted (tipo: ${onboardingCompleted.runtimeType})');
 
           // Tratar diferentes tipos de retorno
           if (onboardingCompleted != null) {
             // Se for boolean, retornar diretamente
             if (onboardingCompleted is bool) {
-              debugPrint('hasCompletedOnboarding: Retornando boolean: $onboardingCompleted');
               return onboardingCompleted;
             }
 
             // Se for string, converter
             if (onboardingCompleted is String) {
               final boolValue = onboardingCompleted.toLowerCase() == 'true' || onboardingCompleted == '1';
-              debugPrint('hasCompletedOnboarding: Convertido de string: $boolValue');
               return boolValue;
             }
 
             // Se for int (0 ou 1), converter
             if (onboardingCompleted is int) {
               final boolValue = onboardingCompleted == 1;
-              debugPrint('hasCompletedOnboarding: Convertido de int: $boolValue');
               return boolValue;
             }
 
             // Tentar cast direto como fallback
             final result = (onboardingCompleted as bool?) ?? false;
-            debugPrint('hasCompletedOnboarding: Resultado final após cast: $result');
             return result;
           }
         }
       } catch (e) {
-        debugPrint('hasCompletedOnboarding: Erro na query direta: $e');
         // Tentar método alternativo
       }
 
       // Método 2: Usar getProfile() como fallback
-      debugPrint('hasCompletedOnboarding: Tentando método alternativo (getProfile)');
       final profile = await getProfile();
       if (profile != null && profile.containsKey('onboarding_completed')) {
         final onboardingCompleted = profile['onboarding_completed'];
-        debugPrint('hasCompletedOnboarding: Valor do perfil completo: $onboardingCompleted');
 
         if (onboardingCompleted is bool) {
           return onboardingCompleted;
@@ -376,12 +318,9 @@ class AuthService {
         }
       }
 
-      debugPrint('hasCompletedOnboarding: Não foi possível obter o valor, retornando false');
       return false;
     } catch (e, stackTrace) {
       // Se não conseguir verificar, assumir que não completou
-      debugPrint('Erro ao verificar onboarding: $e');
-      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }
@@ -391,28 +330,19 @@ class AuthService {
     try {
       final userId = currentUserId;
       if (userId == null) {
-        debugPrint('markOnboardingCompleted: userId é null');
         return;
       }
-
-      debugPrint('markOnboardingCompleted: Marcando onboarding como completo para userId: $userId');
 
       final response = await _client.from('profiles').update({
         'onboarding_completed': true,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userId).select();
 
-      debugPrint('markOnboardingCompleted: Resposta da atualização: $response');
-
       // Verificar se a atualização foi bem-sucedida
       if (response.isEmpty) {
-        debugPrint('markOnboardingCompleted: Aviso - Nenhuma linha foi atualizada');
-      } else {
-        debugPrint('markOnboardingCompleted: Onboarding marcado como completo com sucesso');
+        // Nenhuma linha foi atualizada
       }
     } catch (e, stackTrace) {
-      debugPrint('Erro ao marcar onboarding como completo: $e');
-      debugPrint('Stack trace: $stackTrace');
       // Não lançar exceção - não é crítico
     }
   }
@@ -428,7 +358,6 @@ class AuthService {
 
       return response as Map<String, dynamic>?;
     } catch (e) {
-      debugPrint('Erro ao buscar perfil: $e');
       return null;
     }
   }
@@ -453,7 +382,6 @@ class AuthService {
 
       await _client.from('profiles').update(updateData).eq('id', userId);
     } catch (e) {
-      debugPrint('Erro ao atualizar perfil: $e');
       throw Exception('Erro ao atualizar perfil: ${e.toString()}');
     }
   }
@@ -488,7 +416,6 @@ class AuthService {
 
       return photoUrl;
     } catch (e) {
-      debugPrint('Erro ao fazer upload da foto: $e');
       throw Exception('Erro ao fazer upload da foto: ${e.toString()}');
     }
   }
@@ -507,7 +434,6 @@ class AuthService {
       // Atualizar perfil removendo a URL
       await updateProfile(photoUrl: '');
     } catch (e) {
-      debugPrint('Erro ao remover foto: $e');
       throw Exception('Erro ao remover foto: ${e.toString()}');
     }
   }
@@ -519,8 +445,6 @@ class AuthService {
 
   /// Converte exceções de autenticação em mensagens amigáveis
   static String _handleAuthException(AuthException e) {
-    debugPrint('AuthService: _handleAuthException - statusCode: ${e.statusCode}, message: ${e.message}');
-    
     // Verificar primeiro pela mensagem (alguns erros vêm com statusCode genérico)
     final messageLower = e.message.toLowerCase();
     if (messageLower.contains('already registered') || 
@@ -550,7 +474,6 @@ class AuthService {
       default:
         // Mostrar mensagem mais detalhada para debug
         final message = e.message.isNotEmpty ? e.message : 'Erro de autenticação';
-        debugPrint('AuthService: Erro não mapeado - statusCode: ${e.statusCode}, message: $message');
         return message;
     }
   }

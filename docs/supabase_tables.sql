@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS classes (
   professor TEXT NOT NULL,
   periodo TEXT NOT NULL,
   descricao TEXT NOT NULL DEFAULT '',
-  cor INTEGER NOT NULL,
+  cor BIGINT NOT NULL,
   "dataCriacao" TEXT NOT NULL,
   deleted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -102,7 +102,8 @@ CREATE POLICY "Usuários podem inserir apenas suas próprias classes"
 CREATE POLICY "Usuários podem atualizar apenas suas próprias classes"
   ON classes
   FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Usuários podem deletar apenas suas próprias classes"
   ON classes
@@ -122,7 +123,7 @@ CREATE TABLE IF NOT EXISTS exams (
   dataProva TEXT NOT NULL,
   descricao TEXT NOT NULL DEFAULT '',
   revisoes JSONB NOT NULL DEFAULT '[]'::jsonb,
-  cor INTEGER NOT NULL,
+  cor BIGINT NOT NULL,
   deleted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -150,7 +151,8 @@ CREATE POLICY "Usuários podem inserir apenas suas próprias exams"
 CREATE POLICY "Usuários podem atualizar apenas suas próprias exams"
   ON exams
   FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Usuários podem deletar apenas suas próprias exams"
   ON exams
@@ -194,7 +196,8 @@ CREATE POLICY "Usuários podem inserir apenas suas próprias goals"
 CREATE POLICY "Usuários podem atualizar apenas suas próprias goals"
   ON goals
   FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Usuários podem deletar apenas suas próprias goals"
   ON goals
@@ -205,7 +208,7 @@ CREATE POLICY "Usuários podem deletar apenas suas próprias goals"
 -- Notas Importantes
 -- ============================================
 -- 1. Todas as datas são armazenadas como TEXT no formato ISO8601
--- 2. Cores são armazenadas como INTEGER (ARGB32)
+-- 2. Cores são armazenadas como BIGINT (ARGB32) - BIGINT necessário para valores ARGB32 que podem exceder INTEGER
 -- 3. Revisões em exams são armazenadas como JSONB
 -- 4. RLS está habilitado para todas as tabelas
 -- 5. Soft delete implementado através da coluna deleted_at
