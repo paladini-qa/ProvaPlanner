@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../../services/auth_service.dart';
+import '../../features/app/theme_controller.dart';
 import 'register_screen.dart';
 import 'splash_screen.dart';
 
@@ -97,8 +97,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final brightness = MediaQuery.platformBrightnessOf(context);
+    final themeController = ThemeControllerProvider.of(context);
+    final isDark = themeController.mode == ThemeMode.dark ||
+        (themeController.mode == ThemeMode.system && brightness == Brightness.dark);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -107,7 +113,22 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                // Toggle de tema no topo
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: Icon(
+                      isDark ? Icons.light_mode : Icons.dark_mode,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    onPressed: () async {
+                      await themeController.toggle(brightness);
+                    },
+                    tooltip: isDark ? 'Tema claro' : 'Tema escuro',
+                  ),
+                ),
+
+                const SizedBox(height: 16),
                 
                 // Logo e título
                 Center(
@@ -118,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Bem-vindo de volta!',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppTheme.slate,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -126,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Faça login para continuar',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.slateLight,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -139,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Email',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -173,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Senha',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -228,22 +249,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               _rememberMe = value ?? false;
                             });
                           },
-                          activeColor: AppTheme.indigo,
+                          activeColor: colorScheme.primary,
                         ),
                         Text(
                           'Lembrar-me',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.slateLight,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                     TextButton(
                       onPressed: _handleForgotPassword,
-                      child: const Text(
+                      child: Text(
                         'Esqueci minha senha',
                         style: TextStyle(
-                          color: AppTheme.indigo,
+                          color: colorScheme.primary,
                           fontSize: 14,
                         ),
                       ),
@@ -259,19 +280,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.indigo,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
                             ),
                           )
                         : const Text(
@@ -289,17 +310,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Divisor
                 Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.grey[300])),
+                    Expanded(child: Divider(color: colorScheme.outlineVariant)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
                         'ou',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.slateLight,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
-                    Expanded(child: Divider(color: Colors.grey[300])),
+                    Expanded(child: Divider(color: colorScheme.outlineVariant)),
                   ],
                 ),
 
@@ -318,8 +339,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.indigo,
-                      side: const BorderSide(color: AppTheme.indigo, width: 2),
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.primary, width: 2),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

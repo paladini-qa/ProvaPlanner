@@ -7,6 +7,7 @@ class PreferencesService {
   static const String _userPhotoPathKey = 'userPhotoPath';
   static const String _userPhotoUpdatedAtKey = 'userPhotoUpdatedAt';
   static const String _notificationsEnabledKey = 'notifications_enabled';
+  static const String _themeModeKey = 'theme_mode';
 
   // Métodos para nome do usuário
   static Future<String> getUserName() async {
@@ -85,6 +86,29 @@ class PreferencesService {
   static Future<void> clearAllData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+  // Métodos para modo de tema
+  /// Salva o modo de tema preferido.
+  ///
+  /// Valores aceitos: 'system', 'light', 'dark'
+  static Future<void> setThemeMode(String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeModeKey, mode);
+  }
+
+  /// Recupera o modo de tema salvo.
+  ///
+  /// Retorna 'system' se nenhum valor foi salvo.
+  static Future<String> getThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_themeModeKey) ?? 'system';
+  }
+
+  /// Remove a preferência de tema (volta para 'system').
+  static Future<void> removeThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_themeModeKey);
   }
 }
 

@@ -125,6 +125,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildNavigationButtons() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,10 +134,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         if (_currentPage > 0)
           TextButton(
             onPressed: _previousPage,
-            child: const Text(
+            child: Text(
               'Anterior',
               style: TextStyle(
-                color: AppTheme.slateLighter,
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 16,
               ),
             ),
@@ -150,8 +152,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ElevatedButton(
             onPressed: _nextPage,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.indigo,
-              foregroundColor: Colors.white,
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 16,
@@ -175,6 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildFinalButtons() {
     final canProceed = _acceptedTerms && _hasScrolledToEnd;
+    final colorScheme = Theme.of(context).colorScheme;
     
     return Column(
       children: [
@@ -183,13 +186,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           decoration: BoxDecoration(
             color: canProceed 
-                ? AppTheme.indigo.withValues(alpha: 0.05)
-                : Colors.grey.withValues(alpha: 0.05),
+                ? colorScheme.primary.withValues(alpha: 0.05)
+                : colorScheme.outline.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: canProceed 
-                  ? AppTheme.indigo.withValues(alpha: 0.3)
-                  : Colors.grey.withValues(alpha: 0.3),
+                  ? colorScheme.primary.withValues(alpha: 0.3)
+                  : colorScheme.outline.withValues(alpha: 0.3),
             ),
           ),
           child: CheckboxListTile(
@@ -206,7 +209,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            activeColor: AppTheme.indigo,
+            activeColor: colorScheme.primary,
             contentPadding: EdgeInsets.zero,
             controlAffinity: ListTileControlAffinity.leading,
           ),
@@ -220,8 +223,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ElevatedButton(
             onPressed: canProceed ? _completeOnboarding : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: canProceed ? AppTheme.indigo : Colors.grey,
-              foregroundColor: Colors.white,
+              backgroundColor: canProceed ? colorScheme.primary : colorScheme.outline,
+              foregroundColor: canProceed ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
               padding: const EdgeInsets.symmetric(
                 horizontal: 32,
                 vertical: 16,
@@ -258,8 +261,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -274,7 +279,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Text(
                     'ProvaPlanner',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppTheme.indigo,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                 ),
@@ -312,8 +317,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: AnimatedPageIndicator(
                 currentPage: _currentPage,
                 pageCount: _pages.length + 1, // +1 para página de termos
-                activeColor: AppTheme.indigo,
-                inactiveColor: AppTheme.indigo.withValues(alpha: 0.3),
+                activeColor: colorScheme.primary,
+                inactiveColor: colorScheme.primary.withValues(alpha: 0.3),
                 activeWidth: 24.0,
                 inactiveWidth: 8.0,
                 height: 8.0,
@@ -336,6 +341,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildOnboardingPage(OnboardingPage page) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.all(32.0),
       child: Column(
@@ -362,7 +369,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             page.title,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: AppTheme.slate,
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 28,
             ),
@@ -375,7 +382,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             page.description,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.slateLight,
+              color: colorScheme.onSurfaceVariant,
               fontSize: 16,
               height: 1.5,
             ),
@@ -387,6 +394,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildTermsPage() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -406,20 +415,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: AppTheme.indigo.withValues(alpha: 0.1),
+                          color: colorScheme.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.security,
                           size: 40,
-                          color: AppTheme.indigo,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Termos e Políticas',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppTheme.slate,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -427,7 +436,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Text(
                         'Por favor, leia e aceite os termos para continuar',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.slateLight,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -512,13 +521,15 @@ Você pode exercer seus direitos entrando em contato conosco.
     required String title,
     required String content,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.indigo.withValues(alpha: 0.05),
+        color: colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppTheme.indigo.withValues(alpha: 0.1),
+          color: colorScheme.primary.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
@@ -527,7 +538,7 @@ Você pode exercer seus direitos entrando em contato conosco.
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppTheme.indigo,
+              color: colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -535,7 +546,7 @@ Você pode exercer seus direitos entrando em contato conosco.
           Text(
             content.trim(),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.slateLight,
+              color: colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
           ),

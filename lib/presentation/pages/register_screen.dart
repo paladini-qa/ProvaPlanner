@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../../services/auth_service.dart';
 import 'splash_screen.dart';
@@ -92,13 +91,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.slate),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -119,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'Criar conta',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppTheme.slate,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -127,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         'Comece a organizar seus estudos',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.slateLight,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -140,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Nome completo',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -172,7 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Email',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -206,7 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Senha',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -251,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Confirmar senha',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppTheme.slate,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -304,7 +305,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _acceptTerms = value ?? false;
                         });
                       },
-                      activeColor: AppTheme.indigo,
+                      activeColor: colorScheme.primary,
                     ),
                     Expanded(
                       child: Padding(
@@ -313,21 +314,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           TextSpan(
                             text: 'Eu aceito os ',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.slateLight,
+                              color: colorScheme.onSurfaceVariant,
                             ),
-                            children: const [
+                            children: [
                               TextSpan(
                                 text: 'Termos de Uso',
                                 style: TextStyle(
-                                  color: AppTheme.indigo,
+                                  color: colorScheme.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              TextSpan(text: ' e '),
+                              const TextSpan(text: ' e '),
                               TextSpan(
                                 text: 'Política de Privacidade',
                                 style: TextStyle(
-                                  color: AppTheme.indigo,
+                                  color: colorScheme.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -347,19 +348,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleRegister,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.indigo,
-                      foregroundColor: Colors.white,
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
                             ),
                           )
                         : const Text(
@@ -382,13 +383,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       TextSpan(
                         text: 'Já tem uma conta? ',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.slateLight,
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        children: const [
+                        children: [
                           TextSpan(
                             text: 'Fazer login',
                             style: TextStyle(
-                              color: AppTheme.indigo,
+                              color: colorScheme.primary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

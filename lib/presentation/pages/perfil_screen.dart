@@ -10,6 +10,7 @@ import '../widgets/app_icon.dart';
 import '../services/profile_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/consent_service.dart';
+import '../../features/app/theme_controller.dart';
 import 'login_screen.dart';
 import 'policies_screen.dart';
 
@@ -945,6 +946,35 @@ class _PerfilScreenState extends State<PerfilScreen> {
                               _salvarDadosUsuario();
                             },
                           ),
+                        ),
+                        const Divider(height: 1),
+                        // Toggle de tema
+                        Builder(
+                          builder: (context) {
+                            final brightness = MediaQuery.platformBrightnessOf(context);
+                            final controller = ThemeControllerProvider.of(context);
+                            final isDark = controller.mode == ThemeMode.dark ||
+                                (controller.mode == ThemeMode.system &&
+                                    brightness == Brightness.dark);
+
+                            return ListTile(
+                              leading: Icon(
+                                isDark ? Icons.dark_mode : Icons.light_mode_outlined,
+                              ),
+                              title: const Text('Tema escuro'),
+                              subtitle: Text(
+                                controller.isSystemMode
+                                    ? 'Seguindo o sistema'
+                                    : (isDark ? 'Ativado' : 'Desativado'),
+                              ),
+                              trailing: Switch(
+                                value: isDark,
+                                onChanged: (value) async {
+                                  await controller.toggle(brightness);
+                                },
+                              ),
+                            );
+                          },
                         ),
                         const Divider(height: 1),
                         ListTile(
