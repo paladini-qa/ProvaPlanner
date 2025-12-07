@@ -111,6 +111,23 @@ class ProvaRemoteDataSourceImpl implements ProvaRemoteDataSource {
         throw Exception('Usuário não autenticado');
       }
 
+      // Verifica se a prova existe no remoto (incluindo soft-deleted)
+      final existingResponse = await SupabaseConfig.client
+          .from(_tableName)
+          .select('id, user_id')
+          .eq('id', id)
+          .maybeSingle();
+
+      // Se não existe no remoto, não há nada para deletar
+      if (existingResponse == null) {
+        return; // Prova só existia localmente, nada a fazer no remoto
+      }
+
+      // Verifica se pertence ao usuário atual
+      if (existingResponse['user_id'] != userId) {
+        throw Exception('Prova não pertence ao usuário atual');
+      }
+
       // Soft delete: atualizar deleted_at em vez de deletar
       await SupabaseConfig.client
           .from(_tableName)
